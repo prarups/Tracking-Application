@@ -522,10 +522,17 @@ export const TicketDetailPage: React.FC = () => {
                               className="cursor-pointer group relative overflow-hidden rounded-xl border border-slate-800 bg-slate-900 flex justify-center p-2 hover:border-blue-500/50 transition-all"
                             >
                               <img
-                                src={att.file}
+                                src={att.thumbnail || att.file}
                                 alt={att.original_filename}
+                                onError={(e) => {
+                                  const target = e.currentTarget;
+                                  if (att.file && target.src !== att.file) {
+                                    target.src = att.file;
+                                  }
+                                }}
                                 className="max-h-96 w-full object-contain rounded-lg transition-transform duration-300 group-hover:scale-[1.01]"
                               />
+
                               <div className="absolute inset-0 bg-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                 <span className="bg-slate-900/90 text-white text-xs font-bold px-3 py-1.5 rounded-xl border border-blue-500/40 shadow-xl">
                                   Click for Full Resolution View
