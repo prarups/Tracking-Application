@@ -132,22 +132,18 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Cloudinary Storage Configuration (for uploaded images & files)
-CLOUDINARY_STORAGE = {}
-if os.environ.get('CLOUDINARY_CLOUD_NAME'):
-    CLOUDINARY_STORAGE['CLOUD_NAME'] = os.environ.get('CLOUDINARY_CLOUD_NAME')
-if os.environ.get('CLOUDINARY_API_KEY'):
-    CLOUDINARY_STORAGE['API_KEY'] = os.environ.get('CLOUDINARY_API_KEY')
-if os.environ.get('CLOUDINARY_API_SECRET'):
-    CLOUDINARY_STORAGE['API_SECRET'] = os.environ.get('CLOUDINARY_API_SECRET')
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'hxy2ukev'),
+    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', '976385154438111'),
+    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', '2-_1yzMteg02I30HP0AJHNZwhQo'),
+}
 
 if os.environ.get('CLOUDINARY_URL'):
     import cloudinary
     cloudinary.config(cloudinary_url=os.environ.get('CLOUDINARY_URL'))
-    CLOUDINARY_STORAGE['CLOUDINARY_URL'] = os.environ.get('CLOUDINARY_URL')
 
-# Route default media storage to Cloudinary if configured
-if os.environ.get('CLOUDINARY_CLOUD_NAME') or os.environ.get('CLOUDINARY_URL'):
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
 
 
 
