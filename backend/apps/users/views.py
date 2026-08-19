@@ -116,6 +116,31 @@ class UserViewSet(viewsets.ModelViewSet):
             return [IsAdminOrManager()]
         return super().get_permissions()
 
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+        val = self.kwargs.get(lookup_url_kwarg, '')
+
+        if isinstance(val, str) and val.startswith('@'):
+            val = val[1:]
+
+        user_obj = None
+        if str(val).isdigit():
+            user_obj = queryset.filter(Q(pk=int(val)) | Q(username__iexact=str(val))).first()
+        else:
+            user_obj = queryset.filter(
+                Q(username__iexact=val) |
+                Q(email__iexact=val) |
+                Q(employee_id__iexact=val)
+            ).first()
+
+        if not user_obj:
+            from django.http import Http404
+            raise Http404(f"No User matches the given query for identifier '{val}'.")
+
+        self.check_object_permissions(self.request, user_obj)
+        return user_obj
+
     @action(detail=True, methods=['get', 'post'], url_path='group-permissions')
     def group_permissions(self, request, pk=None):
         user = self.get_object()
