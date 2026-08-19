@@ -126,25 +126,47 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+
 # Cloudinary Storage Configuration (for uploaded images & files)
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
-}
+CLOUDINARY_STORAGE = {}
+if os.environ.get('CLOUDINARY_CLOUD_NAME'):
+    CLOUDINARY_STORAGE['CLOUD_NAME'] = os.environ.get('CLOUDINARY_CLOUD_NAME')
+if os.environ.get('CLOUDINARY_API_KEY'):
+    CLOUDINARY_STORAGE['API_KEY'] = os.environ.get('CLOUDINARY_API_KEY')
+if os.environ.get('CLOUDINARY_API_SECRET'):
+    CLOUDINARY_STORAGE['API_SECRET'] = os.environ.get('CLOUDINARY_API_SECRET')
 
 if os.environ.get('CLOUDINARY_URL'):
     import cloudinary
     cloudinary.config(cloudinary_url=os.environ.get('CLOUDINARY_URL'))
+    CLOUDINARY_STORAGE['CLOUDINARY_URL'] = os.environ.get('CLOUDINARY_URL')
+
 
 # Route default media storage to Cloudinary if configured
 if os.environ.get('CLOUDINARY_CLOUD_NAME') or os.environ.get('CLOUDINARY_URL'):
-    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    STORAGES = {
+        "default": {
+            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
+else:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
+
+
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

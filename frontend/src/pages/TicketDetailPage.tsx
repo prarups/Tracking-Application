@@ -53,10 +53,13 @@ export const TicketDetailPage: React.FC = () => {
   const [uploadMessage, setUploadMessage] = useState('');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-  const isImageFile = (filename: string, mimeType?: string) => {
+  const isImageFile = (filename: string, mimeType?: string, fileUrl?: string) => {
     if (mimeType && mimeType.startsWith('image/')) return true;
-    return /\.(png|jpe?g|webp|gif|svg)$/i.test(filename || '');
+    if (/\.(png|jpe?g|webp|gif|svg|bmp|tiff)$/i.test(filename || '')) return true;
+    if (fileUrl && (fileUrl.includes('cloudinary') || /\.(png|jpe?g|webp|gif|svg)$/i.test(fileUrl))) return true;
+    return false;
   };
+
 
   const handlePostImageComment = async (attachmentId: number) => {
     const content = imageComments[attachmentId];
@@ -500,8 +503,9 @@ export const TicketDetailPage: React.FC = () => {
                 <div className="space-y-4">
                   {ticket.attachments && ticket.attachments.length > 0 ? (
                     ticket.attachments.map((att) => {
-                      const isImg = isImageFile(att.original_filename, att.mime_type);
+                      const isImg = isImageFile(att.original_filename, att.mime_type, att.file);
                       return (
+
                         <div key={att.id} className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800/80 space-y-2.5">
                           <div className="flex items-center justify-between text-xs">
                             <span className="font-semibold text-slate-200 flex items-center gap-1.5">

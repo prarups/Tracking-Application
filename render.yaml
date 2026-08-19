@@ -21,6 +21,15 @@ services:
         value: "*"
       - key: USE_IN_MEMORY_CHANNELS
         value: "True"
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: CLOUDINARY_URL
+        sync: false
+
 
   # ----------------------------------------------------------------------------
   # 2. Vite React Frontend Static Site

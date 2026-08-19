@@ -127,7 +127,8 @@ class TicketViewSet(viewsets.ModelViewSet):
             thumbnail=thumb_file,
             original_filename=file_obj.name,
             file_size_bytes=comp_size,
-            mime_type=getattr(file_obj, 'content_type', 'application/octet-stream'),
+            mime_type='image/webp' if thumb_file else getattr(file_obj, 'content_type', 'application/octet-stream'),
+
             is_compressed=True
         )
 
