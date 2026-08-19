@@ -12,7 +12,7 @@ python manage.py collectstatic --no-input
 echo "===> Running database migrations..."
 python manage.py migrate
 
-echo "===> Creating initial production superuser if not exists..."
-python create_admin.py || true
+echo "===> Cleaning production DB and ensuring superuser..."
+python clean_production_db.py || true
 
 echo "===> Build completed successfully!"
