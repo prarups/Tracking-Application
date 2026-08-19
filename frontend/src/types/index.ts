@@ -43,6 +43,7 @@ export interface Group {
 export interface Project {
   id: number;
   key: string;
+  code?: string;
   name: string;
   description?: string;
   group: number;
@@ -80,7 +81,9 @@ export interface CustomField {
   label: string;
   field_type: FieldType;
   group?: number;
+  group_details?: Group;
   project?: number;
+  project_details?: Project;
   is_required: boolean;
   default_value?: any;
   options?: string[];
@@ -91,7 +94,7 @@ export interface CustomField {
 }
 
 export type Priority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' | 'CRITICAL';
-export type TicketStatus = 'BACKLOG' | 'OPEN' | 'IN_PROGRESS' | 'IN_REVIEW' | 'REOPEN' | 'DONE' | 'CLOSED';
+export type TicketStatus = 'BACKLOG' | 'OPEN' | 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'REOPEN' | 'DONE' | 'CLOSED';
 
 export interface Attachment {
   id: number;
@@ -127,8 +130,11 @@ export interface Ticket {
   due_date?: string;
   project: number;
   project_details?: Project;
+  project_code?: string;
+  project_name?: string;
   assigned_group: number;
   assigned_group_details?: Group;
+  group_details?: Group;
   assigned_user?: number;
   assigned_user_details?: User;
   reporter: number;
