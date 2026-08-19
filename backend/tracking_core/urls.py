@@ -5,9 +5,13 @@ from django.conf.urls.static import static
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 from django.http import HttpResponseRedirect
+import os
 
 def root_redirect(request):
-    return HttpResponseRedirect('http://localhost:3000/')
+    frontend_url = os.environ.get('FRONTEND_URL')
+    if frontend_url:
+        return HttpResponseRedirect(frontend_url)
+    return HttpResponseRedirect('/api/docs/')
 
 urlpatterns = [
     path('', root_redirect, name='root'),
