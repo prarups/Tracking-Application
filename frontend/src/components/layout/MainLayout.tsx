@@ -1,0 +1,217 @@
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '@/store';
+import { logout, setSelectedGroup } from '@/store/slices/authSlice';
+import { setIsSearchModalOpen } from '@/store/slices/filterSlice';
+import { toggleTheme } from '@/store/slices/themeSlice';
+import { clearToast } from '@/store/slices/notificationSlice';
+import { useWebSocketNotifications } from '@/hooks/useWebSocketNotifications';
+import { axiosClient } from '@/api/axiosClient';
+import { Group } from '@/types';
+import {
+  LayoutDashboard,
+  Ticket,
+  Users,
+  Sliders,
+  History,
+  Search,
+  Bell,
+  Sun,
+  Moon,
+  LogOut,
+  ChevronDown,
+  Menu,
+  X,
+  Layers,
+  Shield,
+} from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { GlobalSearchModal } from './GlobalSearchModal';
+import { NotificationDrawer } from './NotificationDrawer';
+
+export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useWebSocketNotifications();
+
+  const { user, selectedGroup } = useSelector((state: RootState) => state.auth);
+  const { mode } = useSelector((state: RootState) => state.theme);
+  const { unreadCount, toastNotification } = useSelector((state: RootState) => state.notifications);
+
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [isGroupDropdownOpen, setIsGroupDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    axiosClient
+      .get('/groups/')
+      .then((res) => {
+        const groupList = res.data.results || res.data;
+        if (Array.isArray(groupList)) {
+          setGroups(groupList);
+          if (groupList.length === 0) {
+            dispatch(setSelectedGroup(null));
+          } else if (!selectedGroup || !groupList.some((g) => g.id === selectedGroup.id)) {
+            dispatch(setSelectedGroup(groupList[0]));
+          }
+        }
+      })
+      .catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    if (toastNotification) {
+      const timer = setTimeout(() => {
+        dispatch(clearToast());
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [toastNotification, dispatch]);
+
+  const navItems = [
+    { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { label: 'Groups & Depts', path: '/groups', icon: Layers },
+    { label: 'User & Access Rights', path: '/users', icon: Users, roleRequired: ['SUPER_ADMIN', 'ADMIN', 'MANAGER'] },
+    { label: 'Dynamic Roles', path: '/roles', icon: Shield, roleRequired: ['SUPER_ADMIN', 'ADMIN', 'MANAGER'] },
+    { label: 'Form Builder', path: '/form-builder', icon: Sliders, roleRequired: ['SUPER_ADMIN', 'ADMIN', 'MANAGER'] },
+    { label: 'Audit Timeline', path: '/audit-logs', icon: History },
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#070A11] text-slate-100 flex flex-col font-sans">
+      {/* Real-time Toast Banner Popup */}
+      {toastNotification && (
+        <div className="fixed top-4 right-4 z-50 bg-blue-600 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-blue-400 animate-bounce">
+          <Bell className="w-5 h-5" />
+          <div className="text-sm">
+            <span className="font-bold">{toastNotification.ticket_number || 'Real-time Alert'}</span>: {toastNotification.message}
+          </div>
+          <button onClick={() => dispatch(clearToast())} className="hover:opacity-80">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Global Search Modal */}
+      <GlobalSearchModal />
+
+      {/* Notification Drawer */}
+      <NotificationDrawer isOpen={isNotificationOpen} onClose={() => setIsNotificationOpen(false)} />
+
+      {/* Top Navigation Bar */}
+      <header className="h-16 bg-slate-900/90 backdrop-blur-xl border-b border-slate-800/80 px-4 flex items-center justify-between sticky top-0 z-40">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="p-2 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+
+          <div className="flex items-center gap-2 font-black text-xl tracking-tight text-white font-heading">
+            <Layers className="w-7 h-7 text-blue-500" />
+            <span>
+              TRACKING<span className="text-blue-500 font-light">HUB</span>
+            </span>
+          </div>
+        </div>
+
+        {/* Search & Actions */}
+        <div className="flex items-center gap-3">
+          {/* Ctrl+K Search Bar Trigger */}
+          <button
+            onClick={() => dispatch(setIsSearchModalOpen(true))}
+            className="hidden md:flex items-center gap-3 bg-slate-950 hover:bg-slate-800/80 border border-slate-800/80 px-3.5 py-1.5 rounded-xl text-xs text-slate-400 font-medium transition-all"
+          >
+            <Search className="w-4 h-4 text-blue-400" />
+            <span>Search tickets, comments, users...</span>
+            <kbd className="bg-slate-800 text-slate-300 font-mono text-[10px] px-1.5 py-0.5 rounded-md border border-slate-700">
+              Ctrl K
+            </kbd>
+          </button>
+
+          {/* Dark / Light Toggle */}
+          <button
+            onClick={() => dispatch(toggleTheme())}
+            className="p-2 rounded-xl bg-slate-800/50 hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
+            title="Toggle theme"
+          >
+            {mode === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-blue-400" />}
+          </button>
+
+          {/* Notification Bell */}
+          <button
+            onClick={() => setIsNotificationOpen(true)}
+            className="relative p-2 rounded-xl bg-slate-800/50 hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
+          >
+            <Bell className="w-4 h-4" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+
+          {/* User Profile */}
+          <div className="flex items-center gap-3 border-l border-slate-800 pl-3">
+            <div className="text-right hidden sm:block">
+              <div className="text-xs font-bold text-white">{user?.username}</div>
+              <div className="text-[10px] font-mono text-blue-400 font-semibold">{user?.role}</div>
+            </div>
+            <button
+              onClick={() => {
+                dispatch(logout());
+                navigate('/login');
+              }}
+              className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 cursor-pointer"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Body */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Sidebar */}
+        <aside
+          className={`${
+            isSidebarOpen ? 'w-64' : 'w-16'
+          } bg-slate-900/60 backdrop-blur-xl border-r border-slate-800/80 transition-all duration-200 flex flex-col`}
+        >
+          <nav className="flex-1 p-3 space-y-1">
+            {navItems.map((item) => {
+              if (item.roleRequired && user && !item.roleRequired.includes(user.role)) {
+                return null;
+              }
+              const isActive = location.pathname.startsWith(item.path);
+              const Icon = item.icon;
+
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                    isActive
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/30'
+                      : 'text-slate-400 hover:bg-slate-800/60 hover:text-white'
+                  }`}
+                >
+                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  {isSidebarOpen && <span>{item.label}</span>}
+                </Link>
+              );
+            })}
+          </nav>
+        </aside>
+
+        {/* Content Area */}
+        <main className="flex-1 overflow-y-auto p-6 bg-[#070A11]">{children}</main>
+      </div>
+    </div>
+  );
+};

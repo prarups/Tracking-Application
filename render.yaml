@@ -1,0 +1,46 @@
+services:
+  # ----------------------------------------------------------------------------
+  # 1. Django Backend ASGI Web Service (WebSockets + REST API)
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: tracking-backend
+    env: python
+    rootDir: backend
+    buildCommand: "./build.sh"
+    startCommand: "daphne -b 0.0.0.0 -p $PORT tracking_core.asgi:application"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: tracking-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: "*"
+      - key: USE_IN_MEMORY_CHANNELS
+        value: "True"
+
+  # ----------------------------------------------------------------------------
+  # 2. Vite React Frontend Static Site
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: tracking-frontend
+    env: static
+    rootDir: frontend
+    buildCommand: "npm install && npm run build"
+    staticPublishPath: "./dist"
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+# ------------------------------------------------------------------------------
+# 3. Render Managed PostgreSQL Database
+# ------------------------------------------------------------------------------
+databases:
+  - name: tracking-db
+    databaseName: tracking
+    user: postgres
+    region: singapore # Change to your preferred region (e.g. oregon, frankfurt, singapore)
