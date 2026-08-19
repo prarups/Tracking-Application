@@ -7,11 +7,11 @@ django.setup()
 from apps.users.models import User, RoleChoices, CustomRole
 from apps.groups_app.models import Group, GroupMember
 from apps.projects.models import Project
-from apps.dynamic_fields.models import CustomField, TicketCustomFieldValue
-from apps.tickets.models import Ticket, Attachment
+from apps.dynamic_fields.models import CustomField
+from apps.tickets.models import Ticket, TicketCustomFieldValue, Attachment
 from apps.comments.models import Comment
 from apps.notifications.models import Notification
-from apps.audit_logs.models import AuditLog
+from apps.audit_logs.models import ActivityLog
 
 def clean_and_init():
     print("[*] Starting Production Database Cleanup...")
@@ -22,7 +22,7 @@ def clean_and_init():
     TicketCustomFieldValue.objects.all().delete()
     Ticket.objects.all().delete()
     Notification.objects.all().delete()
-    AuditLog.objects.all().delete()
+    ActivityLog.objects.all().delete()
 
     # 2. Delete Projects
     Project.objects.all().delete()
@@ -55,7 +55,7 @@ def clean_and_init():
     else:
         print(f"[+] Preserved existing Superuser: {admin_user.username}")
 
-    print("[✔] Database cleaned completely! All default groups, roles, projects, tickets and dummy users removed.")
+    print("[OK] Database cleaned completely! All default groups, roles, projects, tickets and dummy users removed.")
 
 if __name__ == '__main__':
     clean_and_init()
