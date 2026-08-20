@@ -336,18 +336,18 @@ export const TicketsPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Action Bar & Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4 transition-colors">
         <div>
           <button
             onClick={() => navigate('/groups')}
-            className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-white transition-colors cursor-pointer mb-1.5"
+            className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer mb-1.5"
           >
-            <ArrowLeft className="w-4 h-4 text-blue-400" /> Back to Department Groups
+            <ArrowLeft className="w-4 h-4 text-blue-600 dark:text-blue-400" /> Back to Department Groups
           </button>
-          <h1 className="text-2xl font-black text-white tracking-tight">Ticket Management Engine</h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Ticket Management Engine</h1>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
             Displaying tickets for department:{' '}
-            <span className="text-blue-400 font-semibold font-mono">
+            <span className="text-blue-600 dark:text-blue-400 font-semibold font-mono">
               [{activeGroupDetails ? activeGroupDetails.name : selectedGroup ? selectedGroup.name : 'All Departments'}]
             </span>
           </p>
@@ -358,10 +358,10 @@ export const TicketsPage: React.FC = () => {
             type="button"
             onClick={handleExportCSV}
             disabled={filteredTickets.length === 0}
-            className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all hover:border-slate-600 cursor-pointer disabled:opacity-50"
+            className="flex items-center gap-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all hover:border-slate-400 cursor-pointer disabled:opacity-50 shadow-sm"
             title="Export displayed tickets to CSV spreadsheet"
           >
-            <Download className="w-4 h-4 text-emerald-400" /> Export CSV ({filteredTickets.length})
+            <Download className="w-4 h-4 text-emerald-600 dark:text-emerald-400" /> Export CSV ({filteredTickets.length})
           </button>
 
           <button
@@ -379,17 +379,17 @@ export const TicketsPage: React.FC = () => {
       </div>
 
       {/* Filters Bar */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-slate-900/60 backdrop-blur-md p-3.5 rounded-2xl border border-slate-800 text-xs">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white/80 dark:bg-slate-900/60 backdrop-blur-md p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs shadow-sm">
         <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-1.5 font-bold text-slate-300">
-            <Filter className="w-4 h-4 text-blue-400" />
+          <div className="flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-300">
+            <Filter className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             <span>Quick Filters:</span>
           </div>
 
           <select
             value={statusFilter}
             onChange={(e) => dispatch(setStatusFilter(e.target.value))}
-            className="bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none cursor-pointer hover:border-slate-700 transition-colors"
+            className="bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none cursor-pointer hover:border-slate-400 dark:hover:border-slate-700 transition-colors shadow-sm"
           >
             <option value="">All Statuses</option>
             <option value="OPEN">Open</option>
@@ -403,7 +403,7 @@ export const TicketsPage: React.FC = () => {
           <select
             value={priorityFilter}
             onChange={(e) => dispatch(setPriorityFilter(e.target.value))}
-            className="bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none cursor-pointer hover:border-slate-700 transition-colors"
+            className="bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none cursor-pointer hover:border-slate-400 dark:hover:border-slate-700 transition-colors shadow-sm"
           >
             <option value="">All Priorities</option>
             <option value="LOW">Low</option>
@@ -412,10 +412,11 @@ export const TicketsPage: React.FC = () => {
             <option value="URGENT">Urgent</option>
             <option value="CRITICAL">Critical</option>
           </select>
+
           <select
             value={assigneeFilter}
             onChange={(e) => setAssigneeFilter(e.target.value)}
-            className="bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none cursor-pointer hover:border-slate-700 transition-colors font-semibold"
+            className="bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none cursor-pointer hover:border-slate-400 dark:hover:border-slate-700 transition-colors font-semibold shadow-sm"
           >
             <option value="">All Assignees</option>
             <option value="UNASSIGNED">Unassigned</option>
@@ -429,7 +430,7 @@ export const TicketsPage: React.FC = () => {
           <select
             value={createdByFilter}
             onChange={(e) => setCreatedByFilter(e.target.value)}
-            className="bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none cursor-pointer hover:border-slate-700 transition-colors font-semibold"
+            className="bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none cursor-pointer hover:border-slate-400 dark:hover:border-slate-700 transition-colors font-semibold shadow-sm"
           >
             <option value="">All Creators (Created By)</option>
             {users.map((u) => (
@@ -440,25 +441,25 @@ export const TicketsPage: React.FC = () => {
           </select>
 
           {/* Creation Date Range Filters */}
-          <div className="flex items-center gap-2 bg-slate-950/80 border border-slate-800/80 px-2.5 py-1 rounded-xl">
-            <CalendarIcon className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
-            <span className="text-[11px] text-slate-400 font-semibold">Created:</span>
+          <div className="flex items-center gap-2 bg-white dark:bg-slate-950/80 border border-slate-300 dark:border-slate-800/80 px-2.5 py-1 rounded-xl shadow-sm">
+            <CalendarIcon className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+            <span className="text-[11px] text-slate-600 dark:text-slate-400 font-semibold">Created:</span>
             <input
               type="date"
               value={createdFromDate}
               onChange={(e) => setCreatedFromDate(e.target.value)}
               onClick={(e) => e.currentTarget.showPicker?.()}
               title="From Created Date"
-              className="bg-transparent text-slate-200 text-xs focus:outline-none cursor-pointer font-mono [color-scheme:dark]"
+              className="bg-transparent text-slate-800 dark:text-slate-200 text-xs focus:outline-none cursor-pointer font-mono"
             />
-            <span className="text-slate-500 font-bold">&rarr;</span>
+            <span className="text-slate-400 font-bold">&rarr;</span>
             <input
               type="date"
               value={createdToDate}
               onChange={(e) => setCreatedToDate(e.target.value)}
               onClick={(e) => e.currentTarget.showPicker?.()}
               title="To Created Date"
-              className="bg-transparent text-slate-200 text-xs focus:outline-none cursor-pointer font-mono [color-scheme:dark]"
+              className="bg-transparent text-slate-800 dark:text-slate-200 text-xs focus:outline-none cursor-pointer font-mono"
             />
             {(createdFromDate || createdToDate) && (
               <button
@@ -466,7 +467,7 @@ export const TicketsPage: React.FC = () => {
                   setCreatedFromDate('');
                   setCreatedToDate('');
                 }}
-                className="text-slate-400 hover:text-white p-0.5"
+                className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white p-0.5"
                 title="Clear date range filter"
               >
                 <X className="w-3 h-3" />
@@ -483,12 +484,12 @@ export const TicketsPage: React.FC = () => {
             value={searchKey}
             onChange={(e) => setSearchKey(e.target.value)}
             placeholder="Search by Ticket Key (e.g. TR0001)..."
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-8 py-1.5 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none transition-colors"
+            className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl pl-9 pr-8 py-1.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-blue-500 focus:outline-none transition-colors shadow-sm"
           />
           {searchKey && (
             <button
               onClick={() => setSearchKey('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-900 dark:hover:text-white"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -504,30 +505,30 @@ export const TicketsPage: React.FC = () => {
 
       {/* Full Enterprise Create Ticket Modal */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[92vh] overflow-y-auto p-6 animate-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/75 backdrop-blur-md p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[92vh] overflow-y-auto p-6 animate-in zoom-in-95 text-slate-900 dark:text-slate-100">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
               <div>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <Plus className="w-5 h-5 text-blue-400" /> Create New Enterprise Ticket
+                <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Plus className="w-5 h-5 text-blue-600 dark:text-blue-400" /> Create New Enterprise Ticket
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                   Department:{' '}
-                  <span className="text-blue-400 font-semibold font-mono">
+                  <span className="text-blue-600 dark:text-blue-400 font-semibold font-mono">
                     [{activeGroupDetails ? activeGroupDetails.code : selectedGroup ? selectedGroup.code : 'GLOBAL'}]
                   </span>
                 </p>
               </div>
               <button
                 onClick={() => setIsCreateModalOpen(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+                className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {createFormError && (
-              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-400 flex items-center gap-2 font-medium">
+              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-600 dark:text-red-400 flex items-center gap-2 font-medium">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 <span>{createFormError}</span>
               </div>
@@ -536,24 +537,24 @@ export const TicketsPage: React.FC = () => {
             <form onSubmit={handleSubmit(onCreateTicket)} className="space-y-4">
               {/* Section 1: Basic Info */}
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">
-                  Ticket Title / Summary <span className="text-red-400">*</span>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Ticket Title / Summary <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   {...register('title', { required: 'Title is required' })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-blue-500 focus:outline-none"
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none shadow-sm"
                   placeholder="Summary of issue or feature request..."
                 />
               </div>
 
               {/* Section 2: Description */}
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">Description</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Description</label>
                 <textarea
                   rows={3}
                   {...register('description')}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:border-blue-500 focus:outline-none placeholder-slate-600"
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-3 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none placeholder-slate-400 dark:placeholder-slate-600 shadow-sm"
                   placeholder="Detailed description, steps to reproduce, or notes..."
                 />
               </div>
@@ -561,39 +562,39 @@ export const TicketsPage: React.FC = () => {
               {/* Section 3: Status, Priority & Assignee */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-20">
                 <div className="relative">
-                  <label className="block text-xs font-bold text-slate-300 mb-1">Status</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Status</label>
                   <select
                     {...register('status')}
                     defaultValue="OPEN"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white truncate focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer font-semibold"
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white truncate focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer font-semibold shadow-sm"
                   >
-                    <option value="OPEN" className="bg-slate-900 text-slate-100 py-1.5 px-3">Open (Default)</option>
-                    <option value="IN_PROGRESS" className="bg-slate-900 text-slate-100 py-1.5 px-3">In Progress</option>
-                    <option value="IN_REVIEW" className="bg-slate-900 text-slate-100 py-1.5 px-3">In Review</option>
-                    <option value="REOPEN" className="bg-slate-900 text-slate-100 py-1.5 px-3">Reopen</option>
-                    <option value="DONE" className="bg-slate-900 text-slate-100 py-1.5 px-3">Done</option>
-                    <option value="CLOSED" className="bg-slate-900 text-slate-100 py-1.5 px-3">Closed</option>
+                    <option value="OPEN" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 py-1.5 px-3">Open (Default)</option>
+                    <option value="IN_PROGRESS" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 py-1.5 px-3">In Progress</option>
+                    <option value="IN_REVIEW" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 py-1.5 px-3">In Review</option>
+                    <option value="REOPEN" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 py-1.5 px-3">Reopen</option>
+                    <option value="DONE" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 py-1.5 px-3">Done</option>
+                    <option value="CLOSED" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 py-1.5 px-3">Closed</option>
                   </select>
                 </div>
 
                 <div className="relative">
-                  <label className="block text-xs font-bold text-slate-300 mb-1">Priority</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Priority</label>
                   <select
                     {...register('priority')}
                     defaultValue="MEDIUM"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white truncate focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer"
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white truncate focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer shadow-sm"
                   >
-                    <option value="LOW" className="bg-slate-900 text-slate-100 py-1.5 px-3">Low</option>
-                    <option value="MEDIUM" className="bg-slate-900 text-slate-100 py-1.5 px-3">Medium</option>
-                    <option value="HIGH" className="bg-slate-900 text-slate-100 py-1.5 px-3">High</option>
-                    <option value="URGENT" className="bg-slate-900 text-slate-100 py-1.5 px-3">Urgent</option>
-                    <option value="CRITICAL" className="bg-slate-900 text-slate-100 py-1.5 px-3">Critical</option>
+                    <option value="LOW" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 py-1.5 px-3">Low</option>
+                    <option value="MEDIUM" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 py-1.5 px-3">Medium</option>
+                    <option value="HIGH" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 py-1.5 px-3">High</option>
+                    <option value="URGENT" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 py-1.5 px-3">Urgent</option>
+                    <option value="CRITICAL" className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 py-1.5 px-3">Critical</option>
                   </select>
                 </div>
 
                 <div className="relative">
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
-                    Assignee <span className="text-[10px] text-blue-400 font-mono">(Group Access Rights Only)</span>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Assignee <span className="text-[10px] text-blue-600 dark:text-blue-400 font-mono">(Group Access Rights Only)</span>
                   </label>
                   <select
                     {...register('assigned_user')}
@@ -635,49 +636,49 @@ export const TicketsPage: React.FC = () => {
               </div>
 
               {/* Section 4: Interactive Timeline Schedule (From Date -> To Date) */}
-              <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800 space-y-3">
-                <div className="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <CalendarIcon className="w-4 h-4 text-blue-400" /> Timeline Schedule (From Date & Target Due Date)
+              <div className="p-4 bg-slate-100/80 dark:bg-slate-950/60 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm">
+                <div className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <CalendarIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" /> Timeline Schedule (From Date & Target Due Date)
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">Start Date (From Date)</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Start Date (From Date)</label>
                     <input
                       type="date"
                       {...register('start_date')}
                       onClick={(e) => e.currentTarget.showPicker?.()}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-blue-500 focus:outline-none cursor-pointer [color-scheme:dark]"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none cursor-pointer shadow-sm"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-300 mb-1">Target Due Date (To Date)</label>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Target Due Date (To Date)</label>
                     <input
                       type="date"
                       {...register('due_date')}
                       onClick={(e) => e.currentTarget.showPicker?.()}
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-blue-500 focus:outline-none cursor-pointer [color-scheme:dark]"
+                      className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none cursor-pointer shadow-sm"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Section 5: File & Image Upload Attachment Selector */}
-              <div className="p-4 bg-slate-950/60 rounded-2xl border border-slate-800 space-y-3">
+              <div className="p-4 bg-slate-100/80 dark:bg-slate-950/60 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3 shadow-sm">
                 <div className="flex items-center justify-between">
-                  <div className="text-xs font-bold text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <Paperclip className="w-4 h-4 text-purple-400" /> Attach Images & Files (WebP Compression &lt; 50 KB)
+                  <div className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <Paperclip className="w-4 h-4 text-purple-600 dark:text-purple-400" /> Attach Images & Files (WebP Compression &lt; 50 KB)
                   </div>
-                  <span className="text-[10px] text-slate-400 font-mono">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
                     {selectedFiles.length} file(s) selected
                   </span>
                 </div>
 
-                <label className="border-2 border-dashed border-slate-800 hover:border-purple-500/50 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer bg-slate-900/40 transition-colors">
-                  <Upload className="w-6 h-6 text-purple-400 mb-1" />
-                  <span className="text-xs font-bold text-slate-300">Click or Drag & Drop Images/Files Here</span>
-                  <span className="text-[10px] text-slate-500 mt-0.5">Images will be auto-compressed to &lt; 50 KB WebP format</span>
+                <label className="border-2 border-dashed border-slate-300 dark:border-slate-800 hover:border-purple-500 rounded-2xl p-4 flex flex-col items-center justify-center cursor-pointer bg-white/60 dark:bg-slate-900/40 transition-colors shadow-sm">
+                  <Upload className="w-6 h-6 text-purple-600 dark:text-purple-400 mb-1" />
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Click or Drag & Drop Images/Files Here</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-500 mt-0.5">Images will be auto-compressed to &lt; 50 KB WebP format</span>
                   <input
                     type="file"
                     multiple
@@ -689,20 +690,20 @@ export const TicketsPage: React.FC = () => {
                 {selectedFiles.length > 0 && (
                   <div className="space-y-1.5 max-h-36 overflow-y-auto">
                     {selectedFiles.map((file, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-2 bg-slate-900 border border-slate-800 rounded-xl text-xs">
+                      <div key={idx} className="flex items-center justify-between p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs shadow-sm">
                         <div className="flex items-center gap-2 truncate">
                           {file.type.startsWith('image/') ? (
-                            <ImageIcon className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                            <ImageIcon className="w-4 h-4 text-purple-600 dark:text-purple-400 flex-shrink-0" />
                           ) : (
-                            <FileText className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                            <FileText className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                           )}
-                          <span className="truncate text-slate-200">{file.name}</span>
+                          <span className="truncate text-slate-800 dark:text-slate-200">{file.name}</span>
                           <span className="text-[10px] text-slate-500 font-mono">({Math.round(file.size / 1024)} KB)</span>
                         </div>
                         <button
                           type="button"
                           onClick={() => removeSelectedFile(idx)}
-                          className="text-slate-400 hover:text-red-400 p-1"
+                          className="text-slate-400 hover:text-red-500 p-1"
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -715,11 +716,11 @@ export const TicketsPage: React.FC = () => {
               {/* Section 6: Injected Dynamic Custom Fields */}
               <DynamicFormRenderer fields={customFields} register={register} errors={errors} control={control} />
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-bold cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 text-xs font-bold cursor-pointer hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
                 >
                   Cancel
                 </button>

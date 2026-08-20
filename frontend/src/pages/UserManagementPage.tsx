@@ -268,27 +268,27 @@ export const UserManagementPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4 transition-colors">
         <div>
-          <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-            <Users className="w-6 h-6 text-blue-500" />
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+            <Users className="w-6 h-6 text-blue-600 dark:text-blue-500" />
             Users & Access
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
             Manage user accounts, live online status, login permissions, and department group access.
           </p>
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
           {/* Live Online Counter Badge */}
-          <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3.5 py-1.5 rounded-xl text-xs font-semibold">
+          <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3.5 py-1.5 rounded-xl text-xs font-semibold shadow-sm">
             <span className="relative flex h-2.5 w-2.5">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
             </span>
-            <span className="text-emerald-400 font-bold font-mono">{onlineCount} Online</span>
-            <span className="text-slate-600 font-bold">|</span>
-            <span className="text-slate-400 font-mono">{offlineCount} Offline</span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-bold font-mono">{onlineCount} Online</span>
+            <span className="text-slate-300 dark:text-slate-600 font-bold">|</span>
+            <span className="text-slate-600 dark:text-slate-400 font-mono">{offlineCount} Offline</span>
           </div>
 
           <button
@@ -305,10 +305,10 @@ export const UserManagementPage: React.FC = () => {
       </div>
 
       {/* Quick Filters Bar */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-slate-900/60 backdrop-blur-md p-3.5 rounded-2xl border border-slate-800 text-xs">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white/80 dark:bg-slate-900/60 backdrop-blur-md p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs shadow-sm">
         <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-1.5 font-bold text-slate-300">
-            <Filter className="w-4 h-4 text-blue-400" />
+          <div className="flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-300">
+            <Filter className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             <span>Filter People:</span>
           </div>
 
@@ -318,7 +318,7 @@ export const UserManagementPage: React.FC = () => {
               setStatusFilter(e.target.value as any);
               setCurrentPage(1);
             }}
-            className="bg-slate-950 border border-slate-800 text-slate-200 rounded-xl px-3.5 py-1.5 text-xs focus:outline-none cursor-pointer hover:border-slate-700 transition-colors font-semibold"
+            className="bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-200 rounded-xl px-3.5 py-1.5 text-xs focus:outline-none cursor-pointer hover:border-slate-400 dark:hover:border-slate-700 transition-colors font-semibold shadow-sm"
           >
             <option value="ALL">All Accounts ({users.length})</option>
             <option value="ONLINE">Live Online ({onlineCount})</option>
@@ -339,7 +339,7 @@ export const UserManagementPage: React.FC = () => {
               setCurrentPage(1);
             }}
             placeholder="Search by Username, Email, or Role..."
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-8 py-1.5 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none transition-colors"
+            className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl pl-9 pr-8 py-1.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-blue-500 focus:outline-none transition-colors shadow-sm"
           />
           {searchQuery && (
             <button
@@ -347,7 +347,7 @@ export const UserManagementPage: React.FC = () => {
                 setSearchQuery('');
                 setCurrentPage(1);
               }}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -357,27 +357,27 @@ export const UserManagementPage: React.FC = () => {
 
       {/* Users Data Table */}
       {filteredUsers.length === 0 ? (
-        <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-8 text-center space-y-3">
-          <AlertCircle className="w-8 h-8 text-amber-400 mx-auto" />
-          <h4 className="text-sm font-bold text-white">No Matching User Accounts</h4>
-          <p className="text-xs text-slate-400">No user account matched your search query or status filter.</p>
+        <div className="bg-white/80 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 text-center space-y-3 shadow-sm">
+          <AlertCircle className="w-8 h-8 text-amber-500 mx-auto" />
+          <h4 className="text-sm font-bold text-slate-900 dark:text-white">No Matching User Accounts</h4>
+          <p className="text-xs text-slate-600 dark:text-slate-400">No user account matched your search query or status filter.</p>
           <button
             onClick={() => {
               setSearchQuery('');
               setStatusFilter('ALL');
               setCurrentPage(1);
             }}
-            className="text-xs text-blue-400 font-bold hover:underline"
+            className="text-xs text-blue-600 dark:text-blue-400 font-bold hover:underline"
           >
             Reset Filters
           </button>
         </div>
       ) : (
         <>
-          <div className="glass-panel rounded-2xl shadow-xl overflow-hidden border border-slate-800">
+          <div className="bg-white/80 dark:bg-slate-900/60 rounded-2xl shadow-md overflow-hidden border border-slate-200 dark:border-slate-800 backdrop-blur-xl">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-300">
-                <thead className="bg-slate-950/80 text-slate-400 font-bold uppercase tracking-wider text-[10px] border-b border-slate-800">
+              <table className="w-full text-left text-xs text-slate-800 dark:text-slate-300">
+                <thead className="bg-slate-100 dark:bg-slate-950/80 text-slate-700 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200 dark:border-slate-800">
                   <tr>
                     <th className="px-4 py-3.5">User Account</th>
                     <th className="px-4 py-3.5">Live Online Status</th>
@@ -387,33 +387,33 @@ export const UserManagementPage: React.FC = () => {
                     <th className="px-4 py-3.5 text-right">Group Rights Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
                   {paginatedUsers.map((u) => {
                     const online = isUserOnline(u);
                     return (
-                      <tr key={u.id} className="hover:bg-slate-800/40 transition-colors">
-                        <td className="px-4 py-3.5 font-bold text-white flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-blue-600/20 text-blue-400 font-bold flex items-center justify-center text-xs border border-blue-500/30 relative">
+                      <tr key={u.id} className="hover:bg-slate-100/80 dark:hover:bg-slate-800/40 transition-colors">
+                        <td className="px-4 py-3.5 font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-600/20 text-blue-700 dark:text-blue-400 font-bold flex items-center justify-center text-xs border border-blue-300 dark:border-blue-500/30 relative">
                             {u.username.charAt(0).toUpperCase()}
                             {online && (
-                              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-slate-900 rounded-full" />
+                              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full" />
                             )}
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="font-bold text-white text-xs">{u.username}</span>
+                              <span className="font-bold text-slate-900 dark:text-white text-xs">{u.username}</span>
                               {u.employee_id && (
-                                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-500/30">
                                   {u.employee_id}
                                 </span>
                               )}
                             </div>
-                            <div className="text-[10px] text-slate-400 font-mono">{u.email}</div>
+                            <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">{u.email}</div>
                           </div>
                         </td>
                         <td className="px-4 py-3.5">
                           {online ? (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/30">
                               <span className="relative flex h-2 w-2">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -421,28 +421,28 @@ export const UserManagementPage: React.FC = () => {
                               Online
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-800/80 text-slate-400 border border-slate-700">
-                              <span className="w-2 h-2 rounded-full bg-slate-500" />
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700">
+                              <span className="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-500" />
                               Offline
                             </span>
                           )}
                         </td>
                         <td className="px-4 py-3.5">
                           {u.custom_role_details ? (
-                            <span className="text-[10px] font-bold px-2.5 py-1 rounded-md border bg-purple-500/20 text-purple-300 border-purple-500/30 inline-flex items-center gap-1 shadow-sm">
-                              <Sparkles className="w-3 h-3 text-purple-400" />
+                            <span className="text-[10px] font-bold px-2.5 py-1 rounded-md border bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-500/30 inline-flex items-center gap-1 shadow-sm">
+                              <Sparkles className="w-3 h-3 text-purple-600 dark:text-purple-400" />
                               {u.custom_role_details.name}
                             </span>
                           ) : (
                             <span
                               className={`text-[10px] font-bold px-2.5 py-1 rounded border ${
                                 u.role === 'SUPER_ADMIN'
-                                  ? 'bg-purple-500/20 text-purple-300 border-purple-500/30'
+                                  ? 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-500/30'
                                   : u.role === 'ADMIN' || u.role === 'MANAGER'
-                                  ? 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+                                  ? 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-500/30'
                                   : u.role === 'TEAM_LEAD'
-                                  ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
-                                  : 'bg-slate-800 text-slate-300 border-slate-700'
+                                  ? 'bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-500/30'
+                                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700'
                               }`}
                             >
                               {u.role}
@@ -453,22 +453,22 @@ export const UserManagementPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleToggleUserActiveStatus(u)}
-                            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-md ${
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-sm ${
                               u.is_active
-                                ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/25'
-                                : 'bg-red-500/15 text-red-300 border-red-500/40 hover:bg-red-500/25'
+                                ? 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/40 hover:bg-emerald-200 dark:hover:bg-emerald-500/25'
+                                : 'bg-red-100 dark:bg-red-500/15 text-red-800 dark:text-red-300 border-red-300 dark:border-red-500/40 hover:bg-red-200 dark:hover:bg-red-500/25'
                             }`}
                             title={u.is_active ? 'Click to turn OFF (Block Login Access)' : 'Click to turn ON (Allow Login Access)'}
                           >
                             <div
                               className={`w-3 h-3 rounded-full transition-all ${
-                                u.is_active ? 'bg-emerald-400 shadow-sm shadow-emerald-400' : 'bg-red-400 shadow-sm shadow-red-400'
+                                u.is_active ? 'bg-emerald-500 shadow-sm shadow-emerald-400' : 'bg-red-500 shadow-sm shadow-red-400'
                               }`}
                             />
                             <span>{u.is_active ? 'ON (Allowed)' : 'OFF (Blocked)'}</span>
                           </button>
                         </td>
-                        <td className="px-4 py-3.5 text-slate-400 font-mono text-[11px]">
+                        <td className="px-4 py-3.5 text-slate-500 dark:text-slate-400 font-mono text-[11px]">
                           {new Date(u.date_joined).toLocaleDateString()}
                         </td>
                         <td className="px-4 py-3.5 text-right">
@@ -476,14 +476,14 @@ export const UserManagementPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => openEditUserModal(u)}
-                              className="bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-500/30 px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer inline-flex items-center gap-1.5"
+                              className="bg-blue-50 dark:bg-blue-600/10 hover:bg-blue-100 dark:hover:bg-blue-600/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/30 px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-sm"
                             >
                               <Edit3 className="w-3.5 h-3.5" /> Edit Details
                             </button>
                             <button
                               type="button"
                               onClick={() => openRightsModal(u)}
-                              className="bg-purple-600/10 hover:bg-purple-600/20 text-purple-300 border border-purple-500/30 px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer inline-flex items-center gap-1.5"
+                              className="bg-purple-50 dark:bg-purple-600/10 hover:bg-purple-100 dark:hover:bg-purple-600/20 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30 px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-sm"
                             >
                               <Shield className="w-3.5 h-3.5" /> Group Access Rights
                             </button>
@@ -499,11 +499,11 @@ export const UserManagementPage: React.FC = () => {
 
           {/* Pagination Controls Bar */}
           {filteredUsers.length > 0 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-900/60 border border-slate-800/80 p-4 rounded-2xl text-xs text-slate-400 backdrop-blur-xl">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-4 rounded-2xl text-xs text-slate-600 dark:text-slate-400 backdrop-blur-xl shadow-sm">
               <div>
-                Showing <span className="text-white font-bold">{((currentPage - 1) * pageSize) + 1}</span> to{' '}
-                <span className="text-white font-bold">{Math.min(currentPage * pageSize, filteredUsers.length)}</span> of{' '}
-                <span className="text-white font-bold">{filteredUsers.length}</span> User Accounts
+                Showing <span className="text-slate-900 dark:text-white font-bold">{((currentPage - 1) * pageSize) + 1}</span> to{' '}
+                <span className="text-slate-900 dark:text-white font-bold">{Math.min(currentPage * pageSize, filteredUsers.length)}</span> of{' '}
+                <span className="text-slate-900 dark:text-white font-bold">{filteredUsers.length}</span> User Accounts
               </div>
 
               <div className="flex items-center gap-2">
@@ -511,12 +511,12 @@ export const UserManagementPage: React.FC = () => {
                   type="button"
                   onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                   disabled={currentPage === 1}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 font-bold hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 font-bold hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer border border-slate-200 dark:border-slate-700"
                 >
                   <ChevronLeft className="w-4 h-4" /> Previous
                 </button>
 
-                <span className="px-3.5 py-1.5 rounded-xl bg-slate-950 text-blue-400 font-mono font-bold border border-slate-800">
+                <span className="px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-950 text-blue-600 dark:text-blue-400 font-mono font-bold border border-slate-300 dark:border-slate-800 shadow-sm">
                   Page {currentPage} of {totalPages}
                 </span>
 
@@ -524,7 +524,7 @@ export const UserManagementPage: React.FC = () => {
                   type="button"
                   onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                   disabled={currentPage >= totalPages}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 font-bold hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 font-bold hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer border border-slate-200 dark:border-slate-700"
                 >
                   Next <ChevronRight className="w-4 h-4" />
                 </button>
@@ -536,63 +536,63 @@ export const UserManagementPage: React.FC = () => {
 
       {/* Create User Modal */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl w-full max-w-md p-6">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <UserPlus className="w-5 h-5 text-blue-400" /> Create New User Account
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/70 backdrop-blur-md p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-md p-6 text-slate-900 dark:text-white">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <UserPlus className="w-5 h-5 text-blue-600 dark:text-blue-400" /> Create New User Account
               </h3>
-              <button onClick={() => setIsCreateModalOpen(false)} className="text-slate-400 hover:text-white cursor-pointer">
+              <button onClick={() => setIsCreateModalOpen(false)} className="text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {formError && (
-              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-400 flex items-center gap-2 font-medium">
+              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-600 dark:text-red-400 flex items-center gap-2 font-medium">
                 <AlertCircle className="w-4 h-4 flex-shrink-0" />
                 <span>{formError}</span>
               </div>
             )}
 
             <form onSubmit={handleCreateUser} className="space-y-4">
-              <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-2xl flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-300">Employee ID Format:</span>
-                <span className="text-xs font-mono font-bold text-blue-400 bg-slate-950 px-2.5 py-1 rounded-xl border border-blue-500/40">
+              <div className="p-3 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-2xl flex items-center justify-between shadow-sm">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Employee ID Format:</span>
+                <span className="text-xs font-mono font-bold text-blue-700 dark:text-blue-400 bg-white dark:bg-slate-950 px-2.5 py-1 rounded-xl border border-blue-300 dark:border-blue-500/40 shadow-sm">
                   Auto-Assigns Sequentially (e.g. TRA0006)
                 </span>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">
-                  Username <span className="text-red-400">*</span>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Username <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none shadow-sm"
                   placeholder="e.g. john_dev"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">
-                  Email Address <span className="text-red-400">*</span>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Email Address <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none shadow-sm"
                   placeholder="john@company.com"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">
-                  Password <span className="text-red-400">*</span>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Password <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="password"
@@ -600,34 +600,34 @@ export const UserManagementPage: React.FC = () => {
                   minLength={6}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none shadow-sm"
                   placeholder="Minimum 6 characters"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">First Name</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">First Name</label>
                   <input
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none shadow-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">Last Name</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Last Name</label>
                   <input
                     type="text"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none shadow-sm"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">System & Dynamic Role</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">System & Dynamic Role</label>
                 <select
                   value={customRoleId ? `CUSTOM_${customRoleId}` : role}
                   onChange={(e) => {
@@ -641,13 +641,13 @@ export const UserManagementPage: React.FC = () => {
                       setRole(val as Role);
                     }
                   }}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-blue-500 focus:outline-none cursor-pointer"
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none cursor-pointer shadow-sm"
                 >
                   <optgroup label="System Roles">
-                    <option value="SUPER_ADMIN">Super Admin</option>
-                    <option value="ADMIN">Admin</option>
-                    <option value="MANAGER">Manager</option>
-                    <option value="TEAM_LEAD">Team Lead</option>
+                    <option value="SUPER_ADMIN" className="bg-white dark:bg-slate-900">Super Admin</option>
+                    <option value="ADMIN" className="bg-white dark:bg-slate-900">Admin</option>
+                    <option value="MANAGER" className="bg-white dark:bg-slate-900">Manager</option>
+                    <option value="TEAM_LEAD" className="bg-white dark:bg-slate-900">Team Lead</option>
                     <option value="EMPLOYEE">Employee</option>
                     <option value="VIEWER">Viewer</option>
                   </optgroup>

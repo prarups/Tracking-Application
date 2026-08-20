@@ -81,7 +81,7 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
   ];
 
   return (
-    <div className="min-h-screen bg-[#070A11] text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-100 text-slate-900 dark:bg-[#070A11] dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
       {/* Real-time Toast Banner Popup */}
       {toastNotification && (
         <div className="fixed top-4 right-4 z-50 bg-blue-600 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 border border-blue-400 animate-bounce">
@@ -102,17 +102,17 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
       <NotificationDrawer isOpen={isNotificationOpen} onClose={() => setIsNotificationOpen(false)} />
 
       {/* Top Navigation Bar */}
-      <header className="h-16 bg-slate-900/90 backdrop-blur-xl border-b border-slate-800/80 px-3 sm:px-4 flex items-center justify-between sticky top-0 z-40">
+      <header className="h-16 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800/80 px-3 sm:px-4 flex items-center justify-between sticky top-0 z-40 transition-colors duration-200">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-2 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
+            className="p-2 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-colors"
             aria-label="Toggle navigation menu"
           >
             <Menu className="w-5 h-5" />
           </button>
 
-          <div className="flex items-center gap-2 font-black text-lg sm:text-xl tracking-tight text-white font-heading">
+          <div className="flex items-center gap-2 font-black text-lg sm:text-xl tracking-tight text-slate-900 dark:text-white font-heading">
             <Layers className="w-6 h-6 sm:w-7 sm:h-7 text-blue-500 flex-shrink-0" />
             <span>
               TRACKING<span className="text-blue-500 font-light">HUB</span>
@@ -125,11 +125,11 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
           {/* Desktop Search Trigger */}
           <button
             onClick={() => dispatch(setIsSearchModalOpen(true))}
-            className="hidden md:flex items-center gap-3 bg-slate-950 hover:bg-slate-800/80 border border-slate-800/80 px-3.5 py-1.5 rounded-xl text-xs text-slate-400 font-medium transition-all"
+            className="hidden md:flex items-center gap-3 bg-slate-100 dark:bg-slate-950 hover:bg-slate-200 dark:hover:bg-slate-800/80 border border-slate-300 dark:border-slate-800/80 px-3.5 py-1.5 rounded-xl text-xs text-slate-600 dark:text-slate-400 font-medium transition-all"
           >
-            <Search className="w-4 h-4 text-blue-400" />
+            <Search className="w-4 h-4 text-blue-500 dark:text-blue-400" />
             <span>Search tickets, comments, users...</span>
-            <kbd className="bg-slate-800 text-slate-300 font-mono text-[10px] px-1.5 py-0.5 rounded-md border border-slate-700">
+            <kbd className="bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono text-[10px] px-1.5 py-0.5 rounded-md border border-slate-300 dark:border-slate-700">
               Ctrl K
             </kbd>
           </button>
@@ -137,25 +137,25 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
           {/* Mobile Search Icon Trigger */}
           <button
             onClick={() => dispatch(setIsSearchModalOpen(true))}
-            className="md:hidden p-2 rounded-xl bg-slate-800/50 hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
+            className="md:hidden p-2 rounded-xl bg-slate-200/60 dark:bg-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
             title="Search"
           >
-            <Search className="w-4 h-4 text-blue-400" />
+            <Search className="w-4 h-4 text-blue-500 dark:text-blue-400" />
           </button>
 
           {/* Dark / Light Toggle */}
           <button
             onClick={() => dispatch(toggleTheme())}
-            className="p-2 rounded-xl bg-slate-800/50 hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
+            className="p-2 rounded-xl bg-slate-200/60 dark:bg-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-colors"
             title="Toggle theme"
           >
-            {mode === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-blue-400" />}
+            {mode === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-600" />}
           </button>
 
           {/* Notification Bell */}
           <button
             onClick={() => setIsNotificationOpen(true)}
-            className="relative p-2 rounded-xl bg-slate-800/50 hover:bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
+            className="relative p-2 rounded-xl bg-slate-200/60 dark:bg-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer transition-colors"
           >
             <Bell className="w-4 h-4" />
             {unreadCount > 0 && (
@@ -166,17 +166,17 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
           </button>
 
           {/* User Profile */}
-          <div className="flex items-center gap-2 sm:gap-3 border-l border-slate-800 pl-2 sm:pl-3">
+          <div className="flex items-center gap-2 sm:gap-3 border-l border-slate-300 dark:border-slate-800 pl-2 sm:pl-3">
             <div className="text-right hidden sm:block">
-              <div className="text-xs font-bold text-white">{user?.username}</div>
-              <div className="text-[10px] font-mono text-blue-400 font-semibold">{user?.role}</div>
+              <div className="text-xs font-bold text-slate-900 dark:text-white">{user?.username}</div>
+              <div className="text-[10px] font-mono text-blue-600 dark:text-blue-400 font-semibold">{user?.role}</div>
             </div>
             <button
               onClick={() => {
                 dispatch(logout());
                 navigate('/login');
               }}
-              className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 cursor-pointer"
+              className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 dark:text-red-400 cursor-pointer transition-colors"
               title="Logout"
             >
               <LogOut className="w-4 h-4" />
@@ -191,26 +191,26 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
         {isSidebarOpen && (
           <div
             onClick={() => setIsSidebarOpen(false)}
-            className="md:hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-40 transition-opacity"
+            className="md:hidden fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm z-40 transition-opacity"
           />
         )}
 
         {/* Sidebar (Desktop Collapsible & Mobile Slide-over Drawer) */}
         <aside
-          className={`fixed md:relative inset-y-0 left-0 z-50 md:z-auto transition-all duration-300 flex flex-col bg-slate-900/95 md:bg-slate-900/60 backdrop-blur-xl border-r border-slate-800/80 ${
+          className={`fixed md:relative inset-y-0 left-0 z-50 md:z-auto transition-all duration-300 flex flex-col bg-white/95 dark:bg-slate-900/95 md:bg-white/80 md:dark:bg-slate-900/60 backdrop-blur-xl border-r border-slate-200 dark:border-slate-800/80 ${
             isSidebarOpen
               ? 'w-64 translate-x-0'
               : '-translate-x-full md:translate-x-0 md:w-16'
           }`}
         >
-          <div className="md:hidden flex items-center justify-between p-4 border-b border-slate-800">
-            <div className="flex items-center gap-2 font-bold text-sm text-white">
+          <div className="md:hidden flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800">
+            <div className="flex items-center gap-2 font-bold text-sm text-slate-900 dark:text-white">
               <Layers className="w-5 h-5 text-blue-500" />
               <span>Navigation Menu</span>
             </div>
             <button
               onClick={() => setIsSidebarOpen(false)}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+              className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800"
             >
               <X className="w-5 h-5" />
             </button>
@@ -236,7 +236,7 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
                   className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                     isActive
                       ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/30'
-                      : 'text-slate-400 hover:bg-slate-800/60 hover:text-white'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/70 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   <Icon className="w-4 h-4 flex-shrink-0" />
@@ -248,7 +248,7 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
         </aside>
 
         {/* Content Area */}
-        <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 bg-[#070A11] max-w-full overflow-x-hidden">{children}</main>
+        <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 bg-slate-50 dark:bg-[#070A11] max-w-full overflow-x-hidden transition-colors duration-200">{children}</main>
       </div>
     </div>
   );

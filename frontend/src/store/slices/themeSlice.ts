@@ -6,6 +6,14 @@ interface ThemeState {
 
 const initialMode = (localStorage.getItem('theme_mode') as 'dark' | 'light') || 'dark';
 
+if (typeof document !== 'undefined') {
+  if (initialMode === 'dark') {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+}
+
 const initialState: ThemeState = {
   mode: initialMode,
 };

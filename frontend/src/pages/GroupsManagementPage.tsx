@@ -201,13 +201,13 @@ export const GroupsManagementPage: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4 transition-colors">
         <div>
-          <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
-            <Users className="w-6 h-6 text-blue-500" />
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+            <Users className="w-6 h-6 text-blue-600 dark:text-blue-500" />
             Department Groups
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
             Manage department workspaces and team access rights.
           </p>
         </div>
@@ -224,7 +224,7 @@ export const GroupsManagementPage: React.FC = () => {
                 setCurrentPage(1);
               }}
               placeholder="Search by Name or Code (e.g. TR0001)..."
-              className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none transition-all"
+              className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl pl-9 pr-8 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-blue-500 focus:outline-none transition-all shadow-sm"
             />
             {searchQuery && (
               <button
@@ -232,7 +232,7 @@ export const GroupsManagementPage: React.FC = () => {
                   setSearchQuery('');
                   setCurrentPage(1);
                 }}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-900 dark:hover:text-white"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -252,12 +252,12 @@ export const GroupsManagementPage: React.FC = () => {
 
       {/* Empty State Banner */}
       {groups.length === 0 ? (
-        <div className="bg-slate-900/60 border border-slate-800/80 rounded-3xl p-12 text-center space-y-4 backdrop-blur-xl">
-          <div className="w-14 h-14 bg-blue-600/10 border border-blue-500/30 rounded-2xl flex items-center justify-center mx-auto text-blue-400">
+        <div className="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-3xl p-12 text-center space-y-4 backdrop-blur-xl shadow-sm">
+          <div className="w-14 h-14 bg-blue-600/10 border border-blue-500/30 rounded-2xl flex items-center justify-center mx-auto text-blue-600 dark:text-blue-400">
             <Users className="w-7 h-7" />
           </div>
-          <h3 className="text-lg font-bold text-white">No Department Groups Found</h3>
-          <p className="text-xs text-slate-400 max-w-md mx-auto">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white">No Department Groups Found</h3>
+          <p className="text-xs text-slate-600 dark:text-slate-400 max-w-md mx-auto">
             {canManageGroups
               ? 'Click the button below to manually create your first department group.'
               : 'You do not have access rights to any department groups yet. Please contact an Administrator.'}
@@ -272,16 +272,16 @@ export const GroupsManagementPage: React.FC = () => {
           )}
         </div>
       ) : filteredGroups.length === 0 ? (
-        <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-8 text-center space-y-3">
-          <AlertCircle className="w-8 h-8 text-amber-400 mx-auto" />
-          <h4 className="text-sm font-bold text-white">No Matching Department Groups</h4>
-          <p className="text-xs text-slate-400">No department group matched your search query "{searchQuery}".</p>
+        <div className="bg-white/80 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 text-center space-y-3 shadow-sm">
+          <AlertCircle className="w-8 h-8 text-amber-500 mx-auto" />
+          <h4 className="text-sm font-bold text-slate-900 dark:text-white">No Matching Department Groups</h4>
+          <p className="text-xs text-slate-600 dark:text-slate-400">No department group matched your search query "{searchQuery}".</p>
           <button
             onClick={() => {
               setSearchQuery('');
               setCurrentPage(1);
             }}
-            className="text-xs text-blue-400 font-bold hover:underline"
+            className="text-xs text-blue-600 dark:text-blue-400 font-bold hover:underline"
           >
             Clear Search Filter
           </button>
@@ -289,10 +289,10 @@ export const GroupsManagementPage: React.FC = () => {
       ) : (
         <>
           {/* Main Groups Display: Table View */}
-          <div className="bg-slate-900/60 border border-slate-800/80 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-xl">
+          <div className="bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-2xl overflow-hidden shadow-md backdrop-blur-xl">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-300">
-                <thead className="bg-slate-950/80 text-slate-400 uppercase tracking-wider font-bold text-[10px] border-b border-slate-800">
+              <table className="w-full text-left text-xs text-slate-800 dark:text-slate-300">
+                <thead className="bg-slate-100 dark:bg-slate-950/80 text-slate-700 dark:text-slate-400 uppercase tracking-wider font-bold text-[10px] border-b border-slate-200 dark:border-slate-800">
                   <tr>
                     <th className="px-5 py-3.5">Group Code</th>
                     <th className="px-5 py-3.5">Department Name</th>
@@ -300,14 +300,14 @@ export const GroupsManagementPage: React.FC = () => {
                     <th className="px-5 py-3.5 text-right">Actions / Ticket Creation</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
                   {paginatedGroups.map((g) => {
                     const membersList = (g as any).members_details || [];
                     return (
                       <tr
                         key={g.id}
                         onClick={() => handleViewGroupTickets(g)}
-                        className="hover:bg-slate-800/40 transition-colors cursor-pointer group"
+                        className="hover:bg-slate-100/80 dark:hover:bg-slate-800/40 transition-colors cursor-pointer group"
                       >
                         <td className="px-5 py-4 font-mono font-bold">
                           <span
@@ -315,22 +315,22 @@ export const GroupsManagementPage: React.FC = () => {
                             style={{
                               backgroundColor: `${g.color || '#3B82F6'}15`,
                               borderColor: `${g.color || '#3B82F6'}40`,
-                              color: g.color || '#60A5FA',
+                              color: g.color || '#3B82F6',
                             }}
                           >
                             <span className="w-2 h-2 rounded-full" style={{ backgroundColor: g.color || '#3B82F6' }} />
                             [{g.code}]
                           </span>
                         </td>
-                        <td className="px-5 py-4 font-bold text-white group-hover:text-blue-400 transition-colors">
+                        <td className="px-5 py-4 font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                           <div>{g.name}</div>
-                          <div className="text-[11px] text-slate-400 font-normal">{g.description || 'Department workspace.'}</div>
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">{g.description || 'Department workspace.'}</div>
                         </td>
-                        <td className="px-5 py-4 text-slate-300 font-medium">
+                        <td className="px-5 py-4 text-slate-700 dark:text-slate-300 font-medium">
                           <button
                             type="button"
                             onClick={(e) => handleOpenAccessModal(g, e)}
-                            className="text-xs font-bold text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-2"
+                            className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 border border-blue-200 dark:border-blue-500/30 px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-2"
                           >
                             {canManageGroups ? (
                               <>
@@ -339,11 +339,11 @@ export const GroupsManagementPage: React.FC = () => {
                               </>
                             ) : (
                               <>
-                                <Users className="w-3.5 h-3.5 text-blue-400" />
+                                <Users className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                                 <span>View Group Rights</span>
                               </>
                             )}
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-blue-500/20 text-blue-300 border border-blue-500/30 font-bold">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-500/30 font-bold">
                               {membersList.length} {membersList.length === 1 ? 'User' : 'Users'}
                             </span>
                           </button>
@@ -360,7 +360,7 @@ export const GroupsManagementPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => handleViewGroupTickets(g)}
-                              className="flex items-center gap-1 text-slate-400 hover:text-white px-2.5 py-1.5 rounded-xl border border-slate-800 hover:border-slate-700 text-xs font-medium cursor-pointer"
+                              className="flex items-center gap-1 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white px-2.5 py-1.5 rounded-xl border border-slate-300 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-700 text-xs font-medium cursor-pointer"
                             >
                               View Tickets <ArrowRight className="w-3 h-3" />
                             </button>
@@ -376,11 +376,11 @@ export const GroupsManagementPage: React.FC = () => {
 
           {/* Pagination Controls Bar */}
           {filteredGroups.length > 0 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-900/60 border border-slate-800/80 p-4 rounded-2xl text-xs text-slate-400 backdrop-blur-xl">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 p-4 rounded-2xl text-xs text-slate-600 dark:text-slate-400 backdrop-blur-xl shadow-sm">
               <div>
-                Showing <span className="text-white font-bold">{((currentPage - 1) * pageSize) + 1}</span> to{' '}
-                <span className="text-white font-bold">{Math.min(currentPage * pageSize, filteredGroups.length)}</span> of{' '}
-                <span className="text-white font-bold">{filteredGroups.length}</span> Department Groups
+                Showing <span className="text-slate-900 dark:text-white font-bold">{((currentPage - 1) * pageSize) + 1}</span> to{' '}
+                <span className="text-slate-900 dark:text-white font-bold">{Math.min(currentPage * pageSize, filteredGroups.length)}</span> of{' '}
+                <span className="text-slate-900 dark:text-white font-bold">{filteredGroups.length}</span> Department Groups
               </div>
 
               <div className="flex items-center gap-2">
@@ -388,12 +388,12 @@ export const GroupsManagementPage: React.FC = () => {
                   type="button"
                   onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                   disabled={currentPage === 1}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 font-bold hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 font-bold hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer border border-slate-200 dark:border-slate-700"
                 >
                   <ChevronLeft className="w-4 h-4" /> Previous
                 </button>
 
-                <span className="px-3.5 py-1.5 rounded-xl bg-slate-950 text-blue-400 font-mono font-bold border border-slate-800">
+                <span className="px-3.5 py-1.5 rounded-xl bg-white dark:bg-slate-950 text-blue-600 dark:text-blue-400 font-mono font-bold border border-slate-300 dark:border-slate-800 shadow-sm">
                   Page {currentPage} of {totalPages}
                 </span>
 
@@ -401,7 +401,7 @@ export const GroupsManagementPage: React.FC = () => {
                   type="button"
                   onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                   disabled={currentPage >= totalPages}
-                  className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 font-bold hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 font-bold hover:bg-slate-200 dark:hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer border border-slate-200 dark:border-slate-700"
                 >
                   Next <ChevronRight className="w-4 h-4" />
                 </button>
@@ -413,11 +413,11 @@ export const GroupsManagementPage: React.FC = () => {
 
       {/* Create Group Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl w-full max-w-md p-6">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Plus className="w-5 h-5 text-blue-400" /> Create Department Group
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/70 backdrop-blur-md p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-md p-6 text-slate-900 dark:text-white">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Plus className="w-5 h-5 text-blue-600 dark:text-blue-400" /> Create Department Group
               </h3>
               <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white cursor-pointer">
                 <X className="w-5 h-5" />
