@@ -6,10 +6,40 @@ from apps.projects.serializers import ProjectSerializer
 
 class AttachmentSerializer(serializers.ModelSerializer):
     uploaded_by_details = UserSerializer(source='uploaded_by', read_only=True)
+    file = serializers.SerializerMethodField()
+    thumbnail = serializers.SerializerMethodField()
 
     class Meta:
         model = Attachment
         fields = ['id', 'ticket', 'uploaded_by', 'uploaded_by_details', 'file', 'thumbnail', 'original_filename', 'file_size_bytes', 'mime_type', 'is_compressed', 'created_at']
+
+    def get_file(self, obj):
+        if not obj.file:
+            return None
+        try:
+            url = obj.file.url
+            if url.startswith('http://') or url.startswith('https://'):
+                return url
+            if obj.file.storage.exists(obj.file.name):
+                request = self.context.get('request')
+                return request.build_absolute_uri(url) if request else url
+        except Exception:
+            pass
+        return None
+
+    def get_thumbnail(self, obj):
+        if not obj.thumbnail:
+            return None
+        try:
+            url = obj.thumbnail.url
+            if url.startswith('http://') or url.startswith('https://'):
+                return url
+            if obj.thumbnail.storage.exists(obj.thumbnail.name):
+                request = self.context.get('request')
+                return request.build_absolute_uri(url) if request else url
+        except Exception:
+            pass
+        return None
 
 class TicketCustomFieldValueSerializer(serializers.ModelSerializer):
     field_key = serializers.CharField(source='custom_field.field_key', read_only=True)
