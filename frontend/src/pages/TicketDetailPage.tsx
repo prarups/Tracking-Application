@@ -526,8 +526,12 @@ export const TicketDetailPage: React.FC = () => {
                                 alt={att.original_filename}
                                 onError={(e) => {
                                   const target = e.currentTarget;
-                                  if (att.file && target.src !== att.file) {
+                                  if (att.file && target.src !== att.file && !target.dataset.triedFile) {
+                                    target.dataset.triedFile = 'true';
                                     target.src = att.file;
+                                  } else {
+                                    target.onerror = null;
+                                    target.style.display = 'none';
                                   }
                                 }}
                                 className="max-h-96 w-full object-contain rounded-lg transition-transform duration-300 group-hover:scale-[1.01]"
