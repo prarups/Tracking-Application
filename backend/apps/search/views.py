@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import permissions
+from rest_framework import permissions, serializers
+from drf_spectacular.utils import extend_schema
 from django.db.models import Q
 from apps.tickets.models import Ticket
 from apps.comments.models import Comment
@@ -8,6 +9,7 @@ from apps.users.models import User
 from apps.groups_app.models import Group
 from apps.projects.models import Project
 
+@extend_schema(responses={200: serializers.Serializer})
 class GlobalSearchView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 

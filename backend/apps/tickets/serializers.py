@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from drf_spectacular.utils import extend_schema_field
 from .models import Ticket, TicketCustomFieldValue, Attachment
 from apps.users.serializers import UserSerializer
 from apps.groups_app.serializers import GroupSerializer
@@ -13,6 +14,7 @@ class AttachmentSerializer(serializers.ModelSerializer):
         model = Attachment
         fields = ['id', 'ticket', 'uploaded_by', 'uploaded_by_details', 'file', 'thumbnail', 'original_filename', 'file_size_bytes', 'mime_type', 'is_compressed', 'created_at']
 
+    @extend_schema_field(serializers.CharField(allow_null=True))
     def get_file(self, obj):
         if not obj.file:
             return None
@@ -27,6 +29,7 @@ class AttachmentSerializer(serializers.ModelSerializer):
             pass
         return None
 
+    @extend_schema_field(serializers.CharField(allow_null=True))
     def get_thumbnail(self, obj):
         if not obj.thumbnail:
             return None

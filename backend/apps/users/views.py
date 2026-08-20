@@ -1,9 +1,10 @@
-from rest_framework import status, generics, permissions, viewsets
+from rest_framework import status, generics, permissions, viewsets, serializers
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
+from drf_spectacular.utils import extend_schema
 from django.contrib.auth import authenticate
 from .models import User, LoginHistory, CustomRole, RoleChoices
 from .serializers import UserSerializer, UserRegisterSerializer, LoginHistorySerializer, CustomRoleSerializer
@@ -13,6 +14,7 @@ from apps.groups_app.serializers import GroupSerializer
 
 from django.db.models import Q
 
+@extend_schema(request=serializers.Serializer, responses={200: serializers.Serializer})
 class CustomTokenObtainPairView(APIView):
     permission_classes = [permissions.AllowAny]
 
@@ -58,6 +60,7 @@ class CustomTokenObtainPairView(APIView):
                 LoginHistory.objects.create(user=target_user, ip_address=ip, user_agent=user_agent, is_successful=False)
             return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
+@extend_schema(request=serializers.Serializer, responses={200: serializers.Serializer})
 class ForgotPasswordView(APIView):
     permission_classes = [permissions.AllowAny]
 
