@@ -13,7 +13,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        ticket_id = self.request.query_params.get('ticket_id')
+        ticket_id = self.request.query_params.get('ticket') or self.request.query_params.get('ticket_id')
         if ticket_id:
             return self.queryset.filter(ticket_id=ticket_id)
         return self.queryset

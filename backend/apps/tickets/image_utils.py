@@ -6,7 +6,8 @@ from django.core.files.base import ContentFile
 def compress_image_under_50kb(input_file):
     """
     Compresses an uploaded image to less than 50 KB while maintaining visual quality.
-    Converts to WebP or JPEG format, generates a thumbnail, and returns (compressed_content_file, thumbnail_content_file).
+    Converts to WebP or JPEG format and returns (compressed_content_file, None, file_size).
+    Only 1 single optimized image is saved.
     """
     filename = input_file.name
     ext = os.path.splitext(filename)[1].lower()
@@ -29,15 +30,8 @@ def compress_image_under_50kb(input_file):
 
     # Target file size: 50 KB = 51,200 bytes
     max_bytes = 50 * 1024
-    
-    # 1. Generate Thumbnail (120x120)
-    thumb_img = img.copy()
-    thumb_img.thumbnail((120, 120))
-    thumb_io = io.BytesIO()
-    thumb_img.save(thumb_io, format='WEBP', quality=75)
-    thumb_file = ContentFile(thumb_io.getvalue(), name=f"thumb_{os.path.splitext(filename)[0]}.webp")
 
-    # 2. Compress Main Image under 50KB
+    # Compress Main Image under 50KB
     quality = 85
     width, height = img.size
     
@@ -59,4 +53,4 @@ def compress_image_under_50kb(input_file):
             quality = 70
 
     compressed_file = ContentFile(output_io.getvalue(), name=f"{os.path.splitext(filename)[0]}.webp")
-    return compressed_file, thumb_file, output_io.tell()
+    return compressed_file, None, output_io.tell()

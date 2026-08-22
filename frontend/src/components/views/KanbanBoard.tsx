@@ -7,7 +7,7 @@ import { axiosClient } from '@/api/axiosClient';
 
 interface Props {
   tickets: Ticket[];
-  onTicketUpdate: () => void;
+  onTicketUpdate: (isSilent?: boolean) => void;
 }
 
 const COLUMNS: { id: TicketStatus; label: string; color: string; bgBadge: string; dot: string }[] = [
@@ -30,7 +30,7 @@ export const KanbanBoard: React.FC<Props> = ({ tickets, onTicketUpdate }) => {
 
     try {
       await axiosClient.patch(`/tickets/${draggableId}/`, { status: newStatus });
-      onTicketUpdate();
+      onTicketUpdate(true);
     } catch (e) {
       console.error('Error updating ticket status via Kanban drag:', e);
     }
@@ -77,7 +77,7 @@ export const KanbanBoard: React.FC<Props> = ({ tickets, onTicketUpdate }) => {
                               snapshot.isDragging ? 'shadow-2xl ring-2 ring-blue-500' : ''
                             }`}
                           >
-                            <div className="flex items-center justify-between text-[11px] mb-1.5">
+                            <div className="flex items-center justify-between text-[11px] mb-1.5 gap-1">
                               <span className="font-mono font-bold text-blue-400">{ticket.ticket_number}</span>
                               <span className="text-[10px] bg-slate-700 text-slate-300 font-semibold px-1.5 py-0.5 rounded">
                                 {ticket.priority}

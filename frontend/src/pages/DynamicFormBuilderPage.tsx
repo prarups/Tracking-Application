@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { axiosClient } from '@/api/axiosClient';
 import { CustomField, FieldType, Group } from '@/types';
-import { Sliders, Plus, X, Trash2, Filter, Building2 } from 'lucide-react';
+import { Sliders, Plus, X, Trash2, Filter, Building2, Edit3, Tag } from 'lucide-react';
 
 const FIELD_TYPES: { id: FieldType; label: string }[] = [
   { id: 'TEXT', label: 'Text Input' },
@@ -31,11 +31,13 @@ export const DynamicFormBuilderPage: React.FC = () => {
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('');
   
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingField, setEditingField] = useState<CustomField | null>(null);
   const [label, setLabel] = useState('');
   const [fieldKey, setFieldKey] = useState('');
-  const [fieldType, setFieldType] = useState<FieldType>('TEXT');
+  const [fieldType, setFieldType] = useState<FieldType>('DROPDOWN');
   const [targetGroupId, setTargetGroupId] = useState<string>('');
-  const [optionsStr, setOptionsStr] = useState('');
+  const [optionsList, setOptionsList] = useState<string[]>([]);
+  const [newOptionInput, setNewOptionInput] = useState('');
   const [isRequired, setIsRequired] = useState(false);
   const [formError, setFormError] = useState('');
 
@@ -70,32 +72,85 @@ export const DynamicFormBuilderPage: React.FC = () => {
     fetchFields();
   }, [selectedGroupFilter]);
 
-  const handleCreateField = async (e: React.FormEvent) => {
+  const handleAddOption = () => {
+    const val = newOptionInput.trim();
+    if (!val) return;
+    if (val.includes(',')) {
+      const splitted = val.split(',').map((s) => s.trim()).filter(Boolean);
+      setOptionsList([...optionsList, ...splitted.filter((s) => !optionsList.includes(s))]);
+    } else if (!optionsList.includes(val)) {
+      setOptionsList([...optionsList, val]);
+    }
+    setNewOptionInput('');
+  };
+
+  const handleRemoveOption = (index: number) => {
+    setOptionsList(optionsList.filter((_, i) => i !== index));
+  };
+
+  const handleOpenCreateModal = () => {
+    setEditingField(null);
+    setLabel('');
+    setFieldKey('');
+    setFieldType('DROPDOWN');
+    setOptionsList(['Option 1', 'Option 2', 'Option 3']);
+    setNewOptionInput('');
+    setIsRequired(false);
+    setFormError('');
+    if (groups.length > 0 && !targetGroupId) setTargetGroupId(String(groups[0].id));
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (field: CustomField) => {
+    setEditingField(field);
+    setLabel(field.label);
+    setFieldKey(field.field_key);
+    setFieldType(field.field_type);
+    setTargetGroupId(field.group ? String(field.group) : (groups[0] ? String(groups[0].id) : ''));
+    
+    const rawOpts: any = field.options;
+    const existingOpts: string[] = Array.isArray(rawOpts)
+      ? rawOpts.map(String)
+      : typeof rawOpts === 'string'
+      ? rawOpts.split(',').map((s) => s.trim()).filter(Boolean)
+      : [];
+    setOptionsList(existingOpts);
+    setNewOptionInput('');
+    setIsRequired(field.is_required);
+    setFormError('');
+    setIsModalOpen(true);
+  };
+
+  const handleSaveField = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError('');
     if (!targetGroupId) {
       setFormError('Please select a target Department Group for this dynamic field.');
       return;
     }
+
     try {
-      const options = optionsStr.split(',').map((s) => s.trim()).filter(Boolean);
-      await axiosClient.post('/dynamic-fields/', {
+      const payload = {
         label,
         field_key: fieldKey.toLowerCase().replace(/\s+/g, '_'),
         field_type: fieldType,
         group: parseInt(targetGroupId),
-        options,
+        options: optionsList,
         is_required: isRequired,
-        display_order: fields.length + 1,
-      });
+        display_order: editingField ? editingField.display_order : fields.length + 1,
+      };
+
+      if (editingField) {
+        await axiosClient.patch(`/dynamic-fields/${editingField.id}/`, payload);
+      } else {
+        await axiosClient.post('/dynamic-fields/', payload);
+      }
+
       setIsModalOpen(false);
-      setLabel('');
-      setFieldKey('');
-      setOptionsStr('');
       fetchFields();
     } catch (err: any) {
       console.error(err);
-      const msg = err.response?.data?.detail || err.response?.data?.field_key?.[0] || 'Failed to create custom attribute.';
+      const msg = err.response?.data?.detail || err.response?.data?.field_key?.[0] || 'Failed to save custom attribute.';
       setFormError(msg);
     }
   };
@@ -142,11 +197,7 @@ export const DynamicFormBuilderPage: React.FC = () => {
           </div>
 
           <button
-            onClick={() => {
-              setFormError('');
-              if (groups.length > 0 && !targetGroupId) setTargetGroupId(String(groups[0].id));
-              setIsModalOpen(true);
-            }}
+            onClick={handleOpenCreateModal}
             className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-blue-600/30 cursor-pointer transition-all hover:scale-105"
           >
             <Plus className="w-4 h-4" /> Add Dynamic Custom Field
@@ -164,62 +215,99 @@ export const DynamicFormBuilderPage: React.FC = () => {
               <th className="px-4 py-3">Assigned Group</th>
               <th className="px-4 py-3">Field Type</th>
               <th className="px-4 py-3">Required</th>
-              <th className="px-4 py-3">Options</th>
+              <th className="px-4 py-3">Dropdown Choices</th>
               <th className="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
-            {fields.map((f, i) => (
-              <tr key={f.id} className="hover:bg-slate-100/80 dark:hover:bg-slate-800/40 transition-colors">
-                <td className="px-4 py-3 font-mono font-bold text-blue-600 dark:text-blue-400">#{i + 1}</td>
-                <td className="px-4 py-3 font-semibold text-slate-900 dark:text-white">{f.label}</td>
-                <td className="px-4 py-3 font-mono text-slate-600 dark:text-slate-400">{f.field_key}</td>
-                <td className="px-4 py-3 font-medium">
-                  {f.group_details ? (
-                    <span className="inline-flex items-center gap-1 bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-500/30 px-2 py-0.5 rounded text-[11px] font-bold shadow-sm">
-                      <Building2 className="w-3 h-3 text-purple-600 dark:text-purple-400" />
-                      {f.group_details.name} [{f.group_details.code}]
+            {fields.map((f, i) => {
+              const rawOpts: any = f.options;
+              const optsList: string[] = Array.isArray(rawOpts)
+                ? rawOpts.map(String)
+                : typeof rawOpts === 'string'
+                ? rawOpts.split(',').map((s) => s.trim()).filter(Boolean)
+                : [];
+
+              return (
+                <tr key={f.id} className="hover:bg-slate-100/80 dark:hover:bg-slate-800/40 transition-colors">
+                  <td className="px-4 py-3 font-mono font-bold text-blue-600 dark:text-blue-400">#{i + 1}</td>
+                  <td className="px-4 py-3 font-semibold text-slate-900 dark:text-white">{f.label}</td>
+                  <td className="px-4 py-3 font-mono text-slate-600 dark:text-slate-400">{f.field_key}</td>
+                  <td className="px-4 py-3 font-medium">
+                    {f.group_details ? (
+                      <span className="inline-flex items-center gap-1 bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-500/30 px-2 py-0.5 rounded text-[11px] font-bold shadow-sm">
+                        <Building2 className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                        {f.group_details.name} [{f.group_details.code}]
+                      </span>
+                    ) : (
+                      <span className="text-slate-500 italic text-[11px]">Global (All Groups)</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="bg-blue-100 dark:bg-blue-600/20 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-500/30 font-bold px-2 py-0.5 rounded text-[10px] shadow-sm">
+                      {f.field_type}
                     </span>
-                  ) : (
-                    <span className="text-slate-500 italic text-[11px]">Global (All Groups)</span>
-                  )}
-                </td>
-                <td className="px-4 py-3">
-                  <span className="bg-blue-100 dark:bg-blue-600/20 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-500/30 font-bold px-2 py-0.5 rounded text-[10px] shadow-sm">
-                    {f.field_type}
-                  </span>
-                </td>
-                <td className="px-4 py-3">
-                  {f.is_required ? (
-                    <span className="text-red-600 dark:text-red-400 font-bold">Required</span>
-                  ) : (
-                    <span className="text-slate-500">Optional</span>
-                  )}
-                </td>
-                <td className="px-4 py-3 text-slate-600 dark:text-slate-400 font-mono text-[11px]">
-                  {f.options && f.options.length > 0 ? f.options.join(', ') : '-'}
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <button
-                    onClick={() => handleDeleteField(f.id)}
-                    title="Delete Custom Field"
-                    className="p-1 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors cursor-pointer"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                  <td className="px-4 py-3">
+                    {f.is_required ? (
+                      <span className="text-red-600 dark:text-red-400 font-bold">Required</span>
+                    ) : (
+                      <span className="text-slate-500">Optional</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    {optsList.length > 0 ? (
+                      <div className="flex flex-wrap gap-1 max-w-xs">
+                        {optsList.map((opt, idx) => (
+                          <span
+                            key={idx}
+                            className="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 px-1.5 py-0.5 rounded text-[10px] font-semibold"
+                          >
+                            {opt}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-slate-400 italic text-[11px]">-</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-right space-x-1">
+                    <button
+                      onClick={() => handleOpenEditModal(f)}
+                      title="Edit Custom Field & Dropdown Values"
+                      className="p-1 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors cursor-pointer"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteField(f.id)}
+                      title="Delete Custom Field"
+                      className="p-1 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/75 backdrop-blur-md p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-md p-6 animate-in zoom-in-95 text-slate-900 dark:text-white">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-md p-6 animate-in zoom-in-95 text-slate-900 dark:text-white max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
               <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Plus className="w-4 h-4 text-blue-600 dark:text-blue-400" /> Create Custom Attribute
+                {editingField ? (
+                  <>
+                    <Edit3 className="w-4 h-4 text-blue-600 dark:text-blue-400" /> Edit Custom Dynamic Field
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4 text-blue-600 dark:text-blue-400" /> Create Custom Dynamic Field
+                  </>
+                )}
               </h3>
               <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-900 dark:hover:text-white p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
                 <X className="w-5 h-5" />
@@ -232,7 +320,7 @@ export const DynamicFormBuilderPage: React.FC = () => {
               </div>
             )}
 
-            <form onSubmit={handleCreateField} className="space-y-4">
+            <form onSubmit={handleSaveField} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Target Department Group <span className="text-red-500">*</span>
@@ -250,9 +338,6 @@ export const DynamicFormBuilderPage: React.FC = () => {
                     </option>
                   ))}
                 </select>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
-                  This custom field will be inserted ONLY into tickets belonging to this selected group.
-                </p>
               </div>
 
               <div>
@@ -265,10 +350,12 @@ export const DynamicFormBuilderPage: React.FC = () => {
                   value={label}
                   onChange={(e) => {
                     setLabel(e.target.value);
-                    setFieldKey(e.target.value.toLowerCase().replace(/\s+/g, '_'));
+                    if (!editingField) {
+                      setFieldKey(e.target.value.toLowerCase().replace(/\s+/g, '_'));
+                    }
                   }}
                   className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none shadow-sm"
-                  placeholder="e.g. Sprint Name / Server Location"
+                  placeholder="e.g. Priority Level / Server Environment"
                 />
               </div>
 
@@ -280,16 +367,16 @@ export const DynamicFormBuilderPage: React.FC = () => {
                   value={fieldKey}
                   onChange={(e) => setFieldKey(e.target.value)}
                   className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white font-mono focus:border-blue-500 focus:outline-none shadow-sm"
-                  placeholder="custom_sprint_name"
+                  placeholder="custom_priority_level"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Field Type (20+ Supported)</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Field Type</label>
                 <select
                   value={fieldType}
                   onChange={(e) => setFieldType(e.target.value as FieldType)}
-                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white cursor-pointer focus:border-blue-500 focus:outline-none shadow-sm"
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white cursor-pointer focus:border-blue-500 focus:outline-none shadow-sm font-semibold text-blue-600 dark:text-blue-400"
                 >
                   {FIELD_TYPES.map((ft) => (
                     <option key={ft.id} value={ft.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
@@ -299,16 +386,62 @@ export const DynamicFormBuilderPage: React.FC = () => {
                 </select>
               </div>
 
+              {/* Dynamic Interactive Options Manager for Dropdowns & Searchable Dropdowns */}
               {(fieldType === 'DROPDOWN' || fieldType === 'SEARCHABLE_DROPDOWN' || fieldType === 'MULTI_SELECT' || fieldType === 'RADIO') && (
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Choices / Options (Comma Separated)</label>
-                  <input
-                    type="text"
-                    value={optionsStr}
-                    onChange={(e) => setOptionsStr(e.target.value)}
-                    className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-900 dark:text-white shadow-sm"
-                    placeholder="Option A, Option B, Option C"
-                  />
+                <div className="space-y-2.5 p-3 rounded-2xl bg-blue-500/5 dark:bg-blue-500/10 border border-blue-500/20">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
+                      <Tag className="w-3.5 h-3.5" /> Dynamic Dropdown Values / Choices ({optionsList.length})
+                    </label>
+                  </div>
+
+                  {/* Add New Option Input Box */}
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={newOptionInput}
+                      onChange={(e) => setNewOptionInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddOption();
+                        }
+                      }}
+                      className="flex-1 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none shadow-sm"
+                      placeholder="Type option name & click Add (or press Enter)..."
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddOption}
+                      className="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold cursor-pointer transition-all flex-shrink-0"
+                    >
+                      + Add Option
+                    </button>
+                  </div>
+
+                  {/* Active Option Tags Pills List */}
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {optionsList.length > 0 ? (
+                      optionsList.map((opt, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-1.5 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 px-2.5 py-1 rounded-xl text-xs font-semibold shadow-sm group"
+                        >
+                          <span>{opt}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveOption(idx)}
+                            className="text-slate-400 hover:text-red-500 transition-colors p-0.5 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800"
+                            title="Remove option"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-xs text-amber-600 dark:text-amber-400 italic">No dropdown options added yet. Type an option above to add.</p>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -318,7 +451,7 @@ export const DynamicFormBuilderPage: React.FC = () => {
                   id="is_req"
                   checked={isRequired}
                   onChange={(e) => setIsRequired(e.target.checked)}
-                  className="w-4 h-4 rounded text-blue-600 border-slate-300 dark:border-slate-700 focus:ring-blue-500"
+                  className="w-4 h-4 rounded text-blue-600 border-slate-300 dark:border-slate-700 focus:ring-blue-500 cursor-pointer"
                 />
                 <label htmlFor="is_req" className="text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
                   Require this field when submitting tickets
@@ -329,15 +462,15 @@ export const DynamicFormBuilderPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 text-xs font-semibold hover:bg-slate-300 dark:hover:bg-slate-700 cursor-pointer transition-colors"
+                  className="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-300 text-xs font-bold hover:bg-slate-300 dark:hover:bg-slate-700 cursor-pointer transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-lg shadow-blue-600/30 cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-blue-600/30 cursor-pointer"
                 >
-                  Save Custom Field
+                  {editingField ? 'Update Custom Field & Options' : 'Save Custom Field'}
                 </button>
               </div>
             </form>

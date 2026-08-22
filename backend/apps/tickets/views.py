@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Prefetch
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -12,12 +13,16 @@ from apps.notifications.utils import notify_ticket_event
 class TicketViewSet(viewsets.ModelViewSet):
     queryset = Ticket.objects.all().select_related(
         'project', 'assigned_group', 'assigned_user', 'reporter'
-    ).prefetch_related('custom_values', 'attachments', 'watchers').order_by('-created_at')
+    ).prefetch_related(
+        Prefetch('custom_values', queryset=TicketCustomFieldValue.objects.select_related('custom_field')),
+        Prefetch('attachments', queryset=Attachment.objects.select_related('uploaded_by')),
+        'watchers'
+    ).order_by('-created_at')
     serializer_class = TicketSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        qs = super().get_queryset()
+        qs = super().get_queryset().annotate(subtasks_count_annotated=models.Count('subtasks', distinct=True))
         user = self.request.user
 
         if user.is_authenticated and not (user.role in ['SUPER_ADMIN', 'ADMIN'] or user.is_superuser or user.is_staff):
@@ -46,6 +51,23 @@ class TicketViewSet(viewsets.ModelViewSet):
             qs = qs.filter(assigned_user_id=assigned_user_id)
             
         return qs
+
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+        lookup_val = self.kwargs.get(lookup_url_kwarg, '')
+
+        if str(lookup_val).isdigit():
+            obj = queryset.filter(pk=lookup_val).first()
+        else:
+            obj = queryset.filter(ticket_number__iexact=lookup_val).first()
+
+        if not obj:
+            from rest_framework.exceptions import NotFound
+            raise NotFound(f"Ticket '{lookup_val}' not found.")
+
+        self.check_object_permissions(self.request, obj)
+        return obj
 
     def perform_create(self, serializer):
         ticket = serializer.save(reporter=self.request.user)
@@ -83,6 +105,19 @@ class TicketViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         old_ticket = Ticket.objects.get(pk=serializer.instance.pk)
         ticket = serializer.save()
+
+        # Update custom dynamic field values if provided
+        custom_data = self.request.data.get('custom_fields_data', {})
+        if isinstance(custom_data, dict):
+            for field_key, val in custom_data.items():
+                cf = CustomField.objects.filter(field_key=field_key).first()
+                if cf:
+                    if val is not None and str(val).strip() != "":
+                        TicketCustomFieldValue.objects.update_or_create(
+                            ticket=ticket, custom_field=cf, defaults={'value': str(val)}
+                        )
+                    else:
+                        TicketCustomFieldValue.objects.filter(ticket=ticket, custom_field=cf).delete()
         
         changes = []
         # Audit log changes
@@ -118,17 +153,16 @@ class TicketViewSet(viewsets.ModelViewSet):
         if not file_obj:
             return Response({'detail': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
 
-        comp_file, thumb_file, comp_size = compress_image_under_50kb(file_obj)
+        comp_file, _, comp_size = compress_image_under_50kb(file_obj)
 
         attachment = Attachment.objects.create(
             ticket=ticket,
             uploaded_by=request.user,
             file=comp_file,
-            thumbnail=thumb_file,
+            thumbnail=None,
             original_filename=file_obj.name,
             file_size_bytes=comp_size,
-            mime_type='image/webp' if thumb_file else getattr(file_obj, 'content_type', 'application/octet-stream'),
-
+            mime_type='image/webp' if comp_file.name.endswith('.webp') else getattr(file_obj, 'content_type', 'application/octet-stream'),
             is_compressed=True
         )
 

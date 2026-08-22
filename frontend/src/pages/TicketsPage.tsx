@@ -49,6 +49,7 @@ export const TicketsPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [quickViewTicket, setQuickViewTicket] = useState<Ticket | null>(null);
   const [createFormError, setCreateFormError] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
@@ -81,8 +82,8 @@ export const TicketsPage: React.FC = () => {
     fetchGroupInfo();
   }, [selectedGroup]);
 
-  const fetchTickets = async () => {
-    setLoading(true);
+  const fetchTickets = async (isSilent = false) => {
+    if (!isSilent) setLoading(true);
     try {
       let params: string[] = [];
       if (selectedGroup) params.push(`group_id=${selectedGroup.id}`);
@@ -95,7 +96,7 @@ export const TicketsPage: React.FC = () => {
     } catch (e) {
       console.error(e);
     } finally {
-      setLoading(false);
+      if (!isSilent) setLoading(false);
     }
   };
 
@@ -107,13 +108,13 @@ export const TicketsPage: React.FC = () => {
     const fetchMetadata = async () => {
       try {
         const fieldsUrl = selectedGroup ? `/dynamic-fields/?group_id=${selectedGroup.id}` : '/dynamic-fields/';
-        const fRes = await axiosClient.get(fieldsUrl);
+        const [fRes, pRes, uRes] = await Promise.all([
+          axiosClient.get(fieldsUrl),
+          axiosClient.get('/projects/'),
+          axiosClient.get('/auth/users/'),
+        ]);
         setCustomFields(fRes.data.results || fRes.data);
-
-        const pRes = await axiosClient.get('/projects/');
         setProjects(pRes.data.results || pRes.data);
-
-        const uRes = await axiosClient.get('/auth/users/');
         setUsers(uRes.data.results || uRes.data);
       } catch (e) {
         console.error(e);
@@ -333,24 +334,113 @@ export const TicketsPage: React.FC = () => {
     document.body.removeChild(link);
   };
 
+  const totalCount = tickets.length;
+  const openCount = tickets.filter((t) => t.status === 'OPEN' || t.status === 'BACKLOG' || t.status === 'TODO').length;
+  const inProgressCount = tickets.filter((t) => t.status === 'IN_PROGRESS').length;
+  const inReviewCount = tickets.filter((t) => t.status === 'IN_REVIEW' || t.status === 'REOPEN').length;
+  const doneCount = tickets.filter((t) => t.status === 'DONE' || t.status === 'CLOSED').length;
+
   return (
     <div className="space-y-6">
       {/* Action Bar & Controls */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4 transition-colors">
-        <div>
+        <div className="space-y-2">
           <button
             onClick={() => navigate('/groups')}
-            className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer mb-1.5"
+            className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4 text-blue-600 dark:text-blue-400" /> Back to Department Groups
           </button>
-          <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Ticket Management Engine</h1>
-          <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-            Displaying tickets for department:{' '}
-            <span className="text-blue-600 dark:text-blue-400 font-semibold font-mono">
-              [{activeGroupDetails ? activeGroupDetails.name : selectedGroup ? selectedGroup.name : 'All Departments'}]
-            </span>
-          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Ticket Management Engine</h1>
+
+            {/* Live Status Summary Badges in Header */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setStatusFilter('')}
+                className={`px-2.5 py-1 rounded-xl text-[11px] font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${
+                  !statusFilter
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/20'
+                    : 'bg-slate-100 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-blue-500'
+                }`}
+                title="Click to view all tickets"
+              >
+                <span>Total</span>
+                <span className="bg-white/20 dark:bg-black/20 px-1.5 py-0.2 rounded-md font-mono text-[10px]">
+                  {totalCount}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setStatusFilter('OPEN')}
+                className={`px-2.5 py-1 rounded-xl text-[11px] font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${
+                  statusFilter === 'OPEN'
+                    ? 'bg-blue-500 text-white border-blue-500'
+                    : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 hover:border-blue-500'
+                }`}
+                title="Click to filter Open tickets"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                <span>Open</span>
+                <span className="bg-blue-500/20 px-1.5 py-0.2 rounded-md font-mono text-[10px]">
+                  {openCount}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setStatusFilter('IN_PROGRESS')}
+                className={`px-2.5 py-1 rounded-xl text-[11px] font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${
+                  statusFilter === 'IN_PROGRESS'
+                    ? 'bg-amber-500 text-white border-amber-500'
+                    : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 hover:border-amber-500'
+                }`}
+                title="Click to filter In Progress tickets"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                <span>In Progress</span>
+                <span className="bg-amber-500/20 px-1.5 py-0.2 rounded-md font-mono text-[10px]">
+                  {inProgressCount}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setStatusFilter('IN_REVIEW')}
+                className={`px-2.5 py-1 rounded-xl text-[11px] font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${
+                  statusFilter === 'IN_REVIEW'
+                    ? 'bg-purple-500 text-white border-purple-500'
+                    : 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20 hover:border-purple-500'
+                }`}
+                title="Click to filter In Review tickets"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                <span>In Review</span>
+                <span className="bg-purple-500/20 px-1.5 py-0.2 rounded-md font-mono text-[10px]">
+                  {inReviewCount}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setStatusFilter('DONE')}
+                className={`px-2.5 py-1 rounded-xl text-[11px] font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${
+                  statusFilter === 'DONE'
+                    ? 'bg-emerald-500 text-white border-emerald-500'
+                    : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 hover:border-emerald-500'
+                }`}
+                title="Click to filter Completed/Done tickets"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span>Done</span>
+                <span className="bg-emerald-500/20 px-1.5 py-0.2 rounded-md font-mono text-[10px]">
+                  {doneCount}
+                </span>
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center gap-3">
@@ -499,7 +589,7 @@ export const TicketsPage: React.FC = () => {
 
       {/* Active View Render */}
       {viewMode === 'ag-grid' && <TicketAgGridTable tickets={filteredTickets} loading={loading} />}
-      {viewMode === 'kanban' && <KanbanBoard tickets={filteredTickets} onTicketUpdate={fetchTickets} />}
+      {viewMode === 'kanban' && <KanbanBoard tickets={filteredTickets} onTicketUpdate={(silent) => fetchTickets(silent ?? true)} />}
       {viewMode === 'calendar' && <CalendarView tickets={filteredTickets} />}
       {viewMode === 'timeline' && <TimelineView tickets={filteredTickets} />}
 
@@ -593,9 +683,7 @@ export const TicketsPage: React.FC = () => {
                 </div>
 
                 <div className="relative">
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    Assignee <span className="text-[10px] text-blue-600 dark:text-blue-400 font-mono">(Group Access Rights Only)</span>
-                  </label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Assignee</label>
                   <select
                     {...register('assigned_user')}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white truncate focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer"
@@ -740,6 +828,126 @@ export const TicketsPage: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Full Ticket View Modal / Drawer */}
+      {quickViewTicket && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-150">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-4xl max-h-[92vh] overflow-y-auto p-6 text-slate-900 dark:text-slate-100 space-y-6">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
+              <div className="flex items-center gap-3">
+                <span className="font-mono font-bold text-sm bg-blue-500/20 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-xl border border-blue-500/30">
+                  {quickViewTicket.ticket_number}
+                </span>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white line-clamp-1">
+                  {quickViewTicket.title}
+                </h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => navigate(`/tickets/${quickViewTicket.ticket_number || quickViewTicket.id}`)}
+                  className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+                >
+                  Edit / Full Page
+                </button>
+                <button
+                  onClick={() => setQuickViewTicket(null)}
+                  className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Quick View Content Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-2 space-y-4">
+                <div>
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Ticket Summary / Title</h4>
+                  <div className="text-sm font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-950 p-3 rounded-xl border border-slate-200 dark:border-slate-800">
+                    {quickViewTicket.title}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Entire Ticket Description</h4>
+                  <div className="text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-200 dark:border-slate-800 whitespace-pre-wrap min-h-[100px] leading-relaxed">
+                    {quickViewTicket.description || <span className="italic text-slate-400">No description provided.</span>}
+                  </div>
+                </div>
+
+                {/* Custom Dynamic Fields */}
+                {customFields.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {customFields.map((cf) => {
+                        const match = (quickViewTicket.custom_values || []).find(
+                          (cv) => cv.field_key === cf.field_key || cv.custom_field === cf.id
+                        );
+                        const hasVal = match && match.value !== null && String(match.value).trim() !== '';
+
+                        return (
+                          <div key={cf.id} className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col gap-0.5">
+                            <span className="text-slate-500 dark:text-slate-400 font-bold text-[11px]">{cf.label}</span>
+                            {hasVal ? (
+                              <span className="text-slate-900 dark:text-white font-semibold text-xs">{String(match.value)}</span>
+                            ) : (
+                              <span className="text-slate-400 italic text-[11px]">Not set</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                )}
+              </div>
+
+              {/* Sidebar Attributes */}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-4 text-xs">
+                <div>
+                  <span className="text-slate-400 block font-semibold mb-1">Group / Department</span>
+                  <span className="font-bold text-purple-600 dark:text-purple-400 bg-purple-500/10 px-2 py-1 rounded-lg border border-purple-500/20 inline-block font-mono">
+                    {quickViewTicket.assigned_group_details?.name || 'ddada'} [{quickViewTicket.assigned_group_details?.code || 'TR0001'}]
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-slate-400 block font-semibold mb-1">Status</span>
+                  <span className="font-bold text-blue-600 dark:text-blue-400 uppercase bg-blue-500/10 px-2 py-1 rounded-lg border border-blue-500/20 inline-block">
+                    {quickViewTicket.status}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-slate-400 block font-semibold mb-1">Priority</span>
+                  <span className="font-bold text-amber-600 dark:text-amber-400 uppercase bg-amber-500/10 px-2 py-1 rounded-lg border border-amber-500/20 inline-block">
+                    {quickViewTicket.priority}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-slate-400 block font-semibold mb-1">Assignee</span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-200">
+                    {quickViewTicket.assigned_user_details?.username || 'Unassigned'}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-slate-400 block font-semibold mb-1">Reporter</span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-200">
+                    {quickViewTicket.reporter_details?.username || 'System'}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-slate-400 block font-semibold mb-1">Due Date</span>
+                  <span className="font-mono text-slate-700 dark:text-slate-300">
+                    {quickViewTicket.due_date ? new Date(quickViewTicket.due_date).toLocaleDateString() : 'No due date'}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

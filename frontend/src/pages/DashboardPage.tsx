@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { axiosClient } from '@/api/axiosClient';
-import { Ticket, ActivityLog } from '@/types';
+import { Ticket, Group } from '@/types';
 import {
   Ticket as TicketIcon,
   CheckCircle2,
@@ -17,6 +17,11 @@ import {
   Users,
   Sparkles,
   ArrowUpRight,
+  Building2,
+  FolderGit2,
+  Search,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import {
   BarChart,
@@ -33,21 +38,29 @@ import {
 } from 'recharts';
 
 export const DashboardPage: React.FC = () => {
-  const { selectedGroup, user } = useSelector((state: RootState) => state.auth);
+  const { user } = useSelector((state: RootState) => state.auth);
   const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [activities, setActivities] = useState<ActivityLog[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Dashboard Scope Filter (Default '' = All Department Groups Global Overview)
+  const [dashboardScopeGroup, setDashboardScopeGroup] = useState<string>('');
+
+  // Enterprise 100+ Group Scale Controls
+  const [groupSearch, setGroupSearch] = useState('');
+  const [groupPage, setGroupPage] = useState(1);
+  const GROUPS_PER_PAGE = 6;
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const url = selectedGroup ? `/tickets/?group_id=${selectedGroup.id}` : '/tickets/';
-        const res = await axiosClient.get(url);
+        // Fetch ALL tickets in system for Global Enterprise View
+        const res = await axiosClient.get('/tickets/');
         setTickets(res.data.results || res.data);
 
-        const logsRes = await axiosClient.get('/audit-logs/');
-        setActivities((logsRes.data.results || logsRes.data).slice(0, 8));
+        const groupsRes = await axiosClient.get('/groups/');
+        setGroups(groupsRes.data.results || groupsRes.data);
       } catch (e) {
         console.error(e);
       } finally {
@@ -55,26 +68,36 @@ export const DashboardPage: React.FC = () => {
       }
     };
     fetchData();
-  }, [selectedGroup]);
+  }, []);
 
-  // Metrics
-  const totalCount = tickets.length;
-  const openCount = tickets.filter((t) => t.status !== 'DONE' && t.status !== 'CLOSED').length;
-  const closedCount = tickets.filter((t) => t.status === 'DONE' || t.status === 'CLOSED').length;
-  const urgentCount = tickets.filter((t) => t.priority === 'CRITICAL' || t.priority === 'URGENT').length;
+  // Filter tickets based on selected dashboard scope
+  const displayedTickets = dashboardScopeGroup
+    ? tickets.filter(
+        (t) =>
+          String(t.assigned_group) === dashboardScopeGroup ||
+          String(t.assigned_group_details?.id) === dashboardScopeGroup ||
+          t.assigned_group_details?.name === dashboardScopeGroup
+      )
+    : tickets;
+
+  // Metrics computed from displayedScope
+  const totalCount = displayedTickets.length;
+  const openCount = displayedTickets.filter((t) => t.status !== 'DONE' && t.status !== 'CLOSED').length;
+  const closedCount = displayedTickets.filter((t) => t.status === 'DONE' || t.status === 'CLOSED').length;
+  const urgentCount = displayedTickets.filter((t) => t.priority === 'CRITICAL' || t.priority === 'URGENT').length;
 
   const statusData = [
-    { name: 'To Do', count: tickets.filter((t) => t.status === 'TODO').length, color: '#3B82F6' },
-    { name: 'In Progress', count: tickets.filter((t) => t.status === 'IN_PROGRESS').length, color: '#F59E0B' },
-    { name: 'In Review', count: tickets.filter((t) => t.status === 'IN_REVIEW').length, color: '#8B5CF6' },
-    { name: 'Done', count: tickets.filter((t) => t.status === 'DONE').length, color: '#10B981' },
+    { name: 'To Do', count: displayedTickets.filter((t) => t.status === 'TODO' || t.status === 'BACKLOG' || t.status === 'OPEN').length, color: '#3B82F6' },
+    { name: 'In Progress', count: displayedTickets.filter((t) => t.status === 'IN_PROGRESS').length, color: '#F59E0B' },
+    { name: 'In Review', count: displayedTickets.filter((t) => t.status === 'IN_REVIEW' || t.status === 'REOPEN').length, color: '#8B5CF6' },
+    { name: 'Done', count: displayedTickets.filter((t) => t.status === 'DONE' || t.status === 'CLOSED').length, color: '#10B981' },
   ];
 
   const priorityData = [
-    { name: 'Low', value: tickets.filter((t) => t.priority === 'LOW').length, color: '#3B82F6' },
-    { name: 'Medium', value: tickets.filter((t) => t.priority === 'MEDIUM').length, color: '#F59E0B' },
-    { name: 'High', value: tickets.filter((t) => t.priority === 'HIGH').length, color: '#F97316' },
-    { name: 'Critical', value: tickets.filter((t) => t.priority === 'CRITICAL' || t.priority === 'URGENT').length, color: '#EF4444' },
+    { name: 'Low', value: displayedTickets.filter((t) => t.priority === 'LOW').length, color: '#3B82F6' },
+    { name: 'Medium', value: displayedTickets.filter((t) => t.priority === 'MEDIUM').length, color: '#F59E0B' },
+    { name: 'High', value: displayedTickets.filter((t) => t.priority === 'HIGH').length, color: '#F97316' },
+    { name: 'Critical', value: displayedTickets.filter((t) => t.priority === 'CRITICAL' || t.priority === 'URGENT').length, color: '#EF4444' },
   ];
 
   const trendData = [
@@ -101,9 +124,28 @@ export const DashboardPage: React.FC = () => {
             </h1>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Global vs Group Scope Selector Dropdown */}
+            <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-3 py-2 text-xs text-white">
+              <Building2 className="w-4 h-4 text-amber-300" />
+              <select
+                value={dashboardScopeGroup}
+                onChange={(e) => setDashboardScopeGroup(e.target.value)}
+                className="bg-transparent text-white focus:outline-none cursor-pointer font-bold"
+              >
+                <option value="" className="bg-slate-900 text-white font-bold">
+                  All Groups
+                </option>
+                {groups.map((g) => (
+                  <option key={g.id} value={String(g.id)} className="bg-slate-900 text-slate-100 font-semibold">
+                    {g.name} [{g.code}]
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <button
-              onClick={() => alert('Executive SLA report generated & exported successfully!')}
+              onClick={() => alert(`Executive report generated for ${dashboardScopeGroup ? 'selected group' : 'All Department Groups'}!`)}
               className="flex items-center gap-2 bg-white text-blue-900 hover:bg-blue-50 dark:bg-gradient-to-r dark:from-blue-600 dark:to-indigo-600 dark:hover:from-blue-500 dark:hover:to-indigo-500 dark:text-white px-4 py-2.5 rounded-xl text-xs font-extrabold shadow-lg transition-all hover:scale-105 cursor-pointer"
             >
               <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-300" /> Export Executive PDF/Excel
@@ -234,33 +276,6 @@ export const DashboardPage: React.FC = () => {
               </PieChart>
             </ResponsiveContainer>
           </div>
-        </div>
-      </div>
-
-      {/* Activity Log Timeline Widget */}
-      <div className="glass-panel p-6 rounded-2xl shadow-xl space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
-          <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Activity className="w-4 h-4 text-purple-600 dark:text-purple-400" /> Real-Time Audit Activity Log
-          </h3>
-          <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">Real-time Stream</span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {activities.map((act) => (
-            <div key={act.id} className="p-3 rounded-xl bg-white/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 hover:border-blue-500/40 transition-all flex justify-between items-start shadow-sm">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-blue-600 dark:text-blue-400">@{act.actor_details?.username || 'User'}</span>
-                  <span className="text-[10px] font-mono bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-300 px-1.5 py-0.5 rounded border border-purple-200 dark:border-purple-500/30">
-                    {act.action_type}
-                  </span>
-                </div>
-                <p className="text-xs text-slate-700 dark:text-slate-300">{act.new_value || act.field_name || 'Activity recorded'}</p>
-              </div>
-              <span className="text-[10px] text-slate-500 font-mono">{new Date(act.timestamp).toLocaleTimeString()}</span>
-            </div>
-          ))}
         </div>
       </div>
     </div>

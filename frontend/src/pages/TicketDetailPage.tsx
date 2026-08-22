@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { axiosClient } from '@/api/axiosClient';
-import { Ticket, Comment as CommentType, ActivityLog, User } from '@/types';
+import { Ticket, Comment as CommentType, ActivityLog, User, CustomField } from '@/types';
 import {
   MessageSquare,
   Paperclip,
@@ -29,6 +29,8 @@ export const TicketDetailPage: React.FC = () => {
   const [comments, setComments] = useState<CommentType[]>([]);
   const [activities, setActivities] = useState<ActivityLog[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [allCustomFields, setAllCustomFields] = useState<CustomField[]>([]);
+  const [editCustomFieldsData, setEditCustomFieldsData] = useState<Record<string, any>>({});
   
   // Edit mode state
   const [isEditing, setIsEditing] = useState(false);
@@ -51,6 +53,7 @@ export const TicketDetailPage: React.FC = () => {
   const [imageComments, setImageComments] = useState<Record<number, string>>({});
   const [isUploading, setIsUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const isImageFile = (filename: string, mimeType?: string, fileUrl?: string) => {
@@ -85,15 +88,31 @@ export const TicketDetailPage: React.FC = () => {
       const tData = tRes.data;
       setTicket(tData);
 
-      // Populate edit form states
-      setEditTitle(tData.title || '');
-      setEditDescription(tData.description || '');
-      setEditAcceptanceCriteria(tData.acceptance_criteria || '');
-      setEditStatus(tData.status || 'TODO');
-      setEditPriority(tData.priority || 'MEDIUM');
-      setEditAssignee(tData.assigned_user ? String(tData.assigned_user) : '');
-      setEditStartDate(tData.start_date ? tData.start_date.split('T')[0] : '');
-      setEditDueDate(tData.due_date ? tData.due_date.split('T')[0] : '');
+      const fRes = await axiosClient.get('/dynamic-fields/');
+      const fieldsData: CustomField[] = fRes.data.results || fRes.data;
+      setAllCustomFields(fieldsData);
+
+      // Populate edit form states only if not currently editing
+      if (!isEditing) {
+        setEditTitle(tData.title || '');
+        setEditDescription(tData.description || '');
+        setEditAcceptanceCriteria(tData.acceptance_criteria || '');
+        setEditStatus(tData.status || 'TODO');
+        setEditPriority(tData.priority || 'MEDIUM');
+        setEditAssignee(tData.assigned_user ? String(tData.assigned_user) : '');
+        setEditStartDate(tData.start_date ? tData.start_date.split('T')[0] : '');
+        setEditDueDate(tData.due_date ? tData.due_date.split('T')[0] : '');
+
+        const initialCustomData: Record<string, any> = {};
+        const existingValues = tData.custom_values || [];
+        fieldsData.forEach((cf) => {
+          const match = existingValues.find(
+            (cv: any) => cv.field_key === cf.field_key || cv.custom_field === cf.id
+          );
+          initialCustomData[cf.field_key] = match ? match.value : (cf.default_value || '');
+        });
+        setEditCustomFieldsData(initialCustomData);
+      }
 
       const cRes = await axiosClient.get(`/comments/?ticket_id=${id}`);
       setComments(cRes.data.results || cRes.data);
@@ -130,6 +149,7 @@ export const TicketDetailPage: React.FC = () => {
         assigned_user: editAssignee ? parseInt(editAssignee) : null,
         start_date: editStartDate ? new Date(editStartDate).toISOString() : null,
         due_date: editDueDate ? new Date(editDueDate).toISOString() : null,
+        custom_fields_data: editCustomFieldsData,
       });
 
       setSaveSuccess('Ticket updates submitted & saved successfully!');
@@ -160,26 +180,30 @@ export const TicketDetailPage: React.FC = () => {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || !e.target.files[0] || !ticket) return;
-
-    const file = e.target.files[0];
-    const formData = new FormData();
-    formData.append('file', file);
+  const handleFileUpload = async (filesList: FileList | File[]) => {
+    if (!filesList || filesList.length === 0 || !ticket) return;
 
     setIsUploading(true);
-    setUploadMessage('Compressing image to WebP format under < 50 KB...');
+    setUploadMessage('Uploading & optimizing media...');
 
     try {
-      await axiosClient.post(`/tickets/${ticket.id}/attachments/`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const filesArray = Array.from(filesList);
+      for (const file of filesArray) {
+        const formData = new FormData();
+        formData.append('file', file);
+        await axiosClient.post(`/tickets/${ticket.id}/attachments/`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+      }
+      setUploadMessage('Media uploaded successfully!');
+      setTimeout(() => setUploadMessage(''), 3000);
       fetchTicketData();
     } catch (e) {
       console.error(e);
+      setUploadMessage('Upload failed. Please try again.');
+      setTimeout(() => setUploadMessage(''), 3000);
     } finally {
       setIsUploading(false);
-      setUploadMessage('');
     }
   };
 
@@ -237,12 +261,12 @@ export const TicketDetailPage: React.FC = () => {
 
       {/* Interactive Edit Form mode */}
       {isEditing ? (
-        <form onSubmit={handleSaveSubmitTicket} className="p-6 rounded-3xl bg-slate-900 border border-blue-500/40 shadow-2xl space-y-5">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <Edit3 className="w-5 h-5 text-blue-400" /> Edit Ticket: <span className="font-mono text-blue-400">{ticket.ticket_number}</span>
+        <form onSubmit={handleSaveSubmitTicket} className="max-w-4xl mx-auto p-5 rounded-2xl bg-slate-900 border border-blue-500/40 shadow-2xl space-y-3.5 text-xs">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+            <h2 className="text-sm font-bold text-white flex items-center gap-2">
+              <Edit3 className="w-4 h-4 text-blue-400" /> Edit Ticket: <span className="font-mono text-blue-400">{ticket.ticket_number}</span>
             </h2>
-            <span className="text-xs text-slate-400 font-medium">Modify fields and click Submit to save</span>
+            <span className="text-[11px] text-slate-400 font-medium">Modify fields and submit updates</span>
           </div>
 
           <div>
@@ -252,7 +276,19 @@ export const TicketDetailPage: React.FC = () => {
               required
               value={editTitle}
               onChange={(e) => setEditTitle(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:border-blue-500 focus:outline-none"
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+            />
+          </div>
+
+          {/* 2nd Place: Description */}
+          <div>
+            <label className="block text-xs font-bold text-slate-300 mb-1">Description</label>
+            <textarea
+              rows={2}
+              value={editDescription}
+              onChange={(e) => setEditDescription(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:border-blue-500 focus:outline-none placeholder-slate-500"
+              placeholder="Detailed issue description..."
             />
           </div>
 
@@ -289,9 +325,7 @@ export const TicketDetailPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">
-                Assignee <span className="text-[10px] text-blue-400 font-mono">(Group Access Rights Only)</span>
-              </label>
+              <label className="block text-xs font-bold text-slate-300 mb-1">Assignee</label>
               <select
                 value={editAssignee}
                 onChange={(e) => setEditAssignee(e.target.value)}
@@ -346,15 +380,282 @@ export const TicketDetailPage: React.FC = () => {
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-slate-300 mb-1">Description</label>
-            <textarea
-              rows={4}
-              value={editDescription}
-              onChange={(e) => setEditDescription(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-xs text-white focus:border-blue-500 focus:outline-none"
-              placeholder="Detailed issue description..."
-            />
+          {/* Dynamic Custom Fields */}
+          {allCustomFields.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {allCustomFields.map((cf) => {
+                  const rawOpts: any = cf.options;
+                  const opts: string[] = Array.isArray(rawOpts)
+                    ? rawOpts.map(String)
+                    : typeof rawOpts === 'string'
+                    ? (rawOpts as string).split(',').map((s: string) => s.trim())
+                    : [];
+
+                  return (
+                    <div key={cf.id} className="space-y-1">
+                      <label className="block text-xs font-bold text-slate-300">
+                        {cf.label}{' '}
+                        {cf.is_required && <span className="text-rose-400">*</span>}
+                      </label>
+                      {cf.field_type === 'DROPDOWN' || cf.field_type === 'SEARCHABLE_DROPDOWN' || cf.field_type === 'RADIO' ? (
+                        <select
+                          value={editCustomFieldsData[cf.field_key] || ''}
+                          onChange={(e) =>
+                            setEditCustomFieldsData({ ...editCustomFieldsData, [cf.field_key]: e.target.value })
+                          }
+                          className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-blue-500 focus:outline-none cursor-pointer"
+                        >
+                          <option value="">-- Select {cf.label} --</option>
+                          {opts.map((opt, i) => (
+                            <option key={i} value={opt} className="bg-slate-900 text-slate-100">
+                              {opt}
+                            </option>
+                          ))}
+                        </select>
+                      ) : cf.field_type === 'CHECKBOX' || cf.field_type === 'TOGGLE' ? (
+                        <div className="flex items-center gap-2 pt-1">
+                          <input
+                            type="checkbox"
+                            checked={editCustomFieldsData[cf.field_key] === 'true' || editCustomFieldsData[cf.field_key] === true}
+                            onChange={(e) =>
+                              setEditCustomFieldsData({
+                                ...editCustomFieldsData,
+                                [cf.field_key]: e.target.checked ? 'true' : 'false',
+                              })
+                            }
+                            className="w-4 h-4 rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                          />
+                          <span className="text-xs text-slate-300">Enable / True</span>
+                        </div>
+                      ) : cf.field_type === 'NUMBER' ? (
+                        <input
+                          type="number"
+                          value={editCustomFieldsData[cf.field_key] || ''}
+                          onChange={(e) =>
+                            setEditCustomFieldsData({ ...editCustomFieldsData, [cf.field_key]: e.target.value })
+                          }
+                          className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+                        />
+                      ) : cf.field_type === 'DATE' || cf.field_type === 'DATETIME' ? (
+                        <input
+                          type="date"
+                          value={editCustomFieldsData[cf.field_key] || ''}
+                          onChange={(e) =>
+                            setEditCustomFieldsData({ ...editCustomFieldsData, [cf.field_key]: e.target.value })
+                          }
+                          className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-blue-500 focus:outline-none [color-scheme:dark]"
+                        />
+                      ) : cf.field_type === 'TEXTAREA' || cf.field_type === 'RICH_TEXT' ? (
+                        <textarea
+                          rows={2}
+                          value={editCustomFieldsData[cf.field_key] || ''}
+                          onChange={(e) =>
+                            setEditCustomFieldsData({ ...editCustomFieldsData, [cf.field_key]: e.target.value })
+                          }
+                          className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+                        />
+                      ) : (
+                        <input
+                          type="text"
+                          value={editCustomFieldsData[cf.field_key] || ''}
+                          onChange={(e) =>
+                            setEditCustomFieldsData({ ...editCustomFieldsData, [cf.field_key]: e.target.value })
+                          }
+                          className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+          )}
+
+          {/* Attachments & WebP Media Dropzone (Included inside Form) */}
+          <div className="p-4 bg-slate-950/80 rounded-2xl border border-slate-800 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+              <h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+                <Paperclip className="w-4 h-4 text-emerald-400" /> Ticket Media & Attachments ({ticket.attachments?.length || 0})
+              </h4>
+              <span className="text-[10px] text-slate-400 font-mono">Auto WebP Compression &lt; 50KB</span>
+            </div>
+
+            {/* Attachments Drag & Drop Zone */}
+            <div
+              onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDragging(false);
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                  handleFileUpload(e.dataTransfer.files);
+                }
+              }}
+              className={`p-6 rounded-2xl border-2 border-dashed transition-all text-center space-y-3 cursor-pointer ${
+                isDragging
+                  ? 'border-blue-500 bg-blue-500/10 scale-[1.01]'
+                  : 'border-slate-800 hover:border-blue-500 bg-slate-900/60'
+              }`}
+            >
+              <input
+                type="file"
+                id="editFormFileUpload"
+                className="hidden"
+                multiple
+                onChange={(e) => e.target.files && handleFileUpload(e.target.files)}
+              />
+              <label htmlFor="editFormFileUpload" className="cursor-pointer space-y-2 block">
+                <Upload className="w-7 h-7 text-blue-400 mx-auto" />
+                <div className="text-xs font-bold text-white">
+                  Drag & Drop Images / Files Here or <span className="text-blue-400 underline">Browse Files</span>
+                </div>
+                <div className="text-[10px] text-slate-400 font-mono">
+                  Auto-optimized WebP image storage
+                </div>
+              </label>
+
+              {isUploading && (
+                <div className="p-2.5 bg-blue-600/20 border border-blue-500/30 text-blue-300 text-xs rounded-xl font-bold flex items-center justify-center gap-2 animate-pulse">
+                  <div className="w-3.5 h-3.5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                  <span>{uploadMessage || 'Uploading & optimizing media...'}</span>
+                </div>
+              )}
+
+              {uploadMessage && !isUploading && (
+                <p className="text-xs text-emerald-400 font-bold bg-emerald-500/10 py-1 px-3 rounded-xl border border-emerald-500/20 inline-block">
+                  ✨ {uploadMessage}
+                </p>
+              )}
+            </div>
+
+            {/* Attachments Gallery & List */}
+            <div className="space-y-3 pt-2">
+              {ticket.attachments && ticket.attachments.length > 0 ? (
+                ticket.attachments.map((att) => {
+                  const isImg = isImageFile(att.original_filename, att.mime_type, att.file);
+                  return (
+                    <div key={att.id} className="p-3.5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-semibold text-slate-200 flex items-center gap-1.5">
+                          <Paperclip className="w-3.5 h-3.5 text-blue-400" /> {att.original_filename}
+                        </span>
+                        <span className="text-[10px] text-emerald-400 font-mono font-bold bg-emerald-500/10 px-2.5 py-0.5 rounded-md border border-emerald-500/20">
+                          {(att.file_size_bytes / 1024).toFixed(1)} KB (Optimized WebP)
+                        </span>
+                      </div>
+
+                      {isImg ? (
+                        <div
+                          onClick={() => setPreviewImage(att.file)}
+                          className="cursor-pointer group relative overflow-hidden rounded-xl border border-slate-800 bg-slate-950 flex justify-center p-2 hover:border-blue-500/50 transition-all"
+                        >
+                          <img
+                            src={att.thumbnail || att.file}
+                            alt={att.original_filename}
+                            onError={(e) => {
+                              const target = e.currentTarget;
+                              if (att.file && target.src !== att.file && !target.dataset.triedFile) {
+                                target.dataset.triedFile = 'true';
+                                target.src = att.file;
+                              } else {
+                                target.onerror = null;
+                                target.style.display = 'none';
+                              }
+                            }}
+                            className="max-h-72 w-full object-contain rounded-lg transition-transform duration-300 group-hover:scale-[1.01]"
+                          />
+                          <div className="absolute inset-0 bg-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span className="bg-slate-900/90 text-white text-xs font-bold px-3 py-1.5 rounded-xl border border-blue-500/40 shadow-xl">
+                              Click for Full Resolution View
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <a
+                          href={att.file}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="p-3 rounded-xl bg-slate-950 border border-slate-800 hover:border-blue-500 flex items-center gap-2 text-xs font-semibold text-blue-400 transition-colors"
+                        >
+                          <FileText className="w-5 h-5" /> Download File: {att.original_filename}
+                        </a>
+                      )}
+
+                      {/* Image-Specific Comments */}
+                      <div className="pt-2 border-t border-slate-800/80 space-y-2">
+                        <div className="text-[11px] font-bold text-slate-400 flex items-center gap-1.5">
+                          <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
+                          <span>Comments for this image ({comments.filter((c) => c.attachment === att.id).length}):</span>
+                        </div>
+                        <div className="space-y-1.5">
+                          {comments
+                            .filter((c) => c.attachment === att.id)
+                            .map((ic) => (
+                              <div key={ic.id} className="p-2 rounded-xl bg-slate-950 border border-slate-800 text-xs">
+                                <div className="flex items-center justify-between text-slate-400 mb-0.5">
+                                  <span className="font-bold text-white text-[11px]">{ic.author_details?.username}</span>
+                                  <span className="text-[9px] font-mono text-slate-500">{new Date(ic.created_at).toLocaleTimeString()}</span>
+                                </div>
+                                <p className="text-slate-300 text-[11px] leading-relaxed">{ic.content}</p>
+                              </div>
+                            ))}
+                        </div>
+                        <div className="flex items-center gap-2 pt-1">
+                          <input
+                            type="text"
+                            value={imageComments[att.id] || ''}
+                            onChange={(e) => setImageComments({ ...imageComments, [att.id]: e.target.value })}
+                            placeholder={`Write a comment on ${att.original_filename}...`}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handlePostImageComment(att.id);
+                              }
+                            }}
+                            className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handlePostImageComment(att.id)}
+                            className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 shadow-md shadow-blue-600/30 cursor-pointer"
+                          >
+                            <Send className="w-3 h-3" /> Comment
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="text-xs text-slate-500 italic p-3 bg-slate-950/40 rounded-xl border border-slate-800 text-center">
+                  No attachments uploaded yet. Click above to add images/files.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Discussion Thread & Mentions (Editable inside Edit Mode) */}
+          <div className="p-4 bg-slate-950/80 rounded-2xl border border-slate-800 space-y-3">
+            <h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-2">
+              <MessageSquare className="w-4 h-4 text-emerald-400" /> Post Discussion Comment / @Mention
+            </h4>
+            <div className="space-y-2">
+              <textarea
+                rows={3}
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Write a comment... Use @username to mention team members."
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:border-blue-500 focus:outline-none placeholder-slate-500"
+              />
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={handlePostComment}
+                  className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-blue-600/30 cursor-pointer"
+                >
+                  <Send className="w-3.5 h-3.5" /> Post Comment
+                </button>
+              </div>
+            </div>
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
@@ -467,38 +768,43 @@ export const TicketDetailPage: React.FC = () => {
               </div>
 
               {/* Custom Dynamic Fields Output */}
-              {ticket.custom_values && ticket.custom_values.length > 0 && (
+              {allCustomFields.length > 0 && (
                 <div className="pt-3 border-t border-slate-800">
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Custom Field Attributes</h4>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    {ticket.custom_values.map((cv) => (
-                      <div key={cv.id} className="p-2 rounded bg-slate-800/60 border border-slate-800">
-                        <span className="text-slate-400 font-semibold">{cv.field_label}: </span>
-                        <span className="text-white font-medium">{String(cv.value)}</span>
-                      </div>
-                    ))}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    {allCustomFields.map((cf) => {
+                      const matched = (ticket.custom_values || []).find(
+                        (cv) => cv.field_key === cf.field_key || cv.custom_field === cf.id
+                      );
+                      const hasVal = matched && matched.value !== null && matched.value !== undefined && String(matched.value).trim() !== '';
+
+                      return (
+                        <div key={cf.id} className="p-2.5 rounded-xl bg-slate-800/60 border border-slate-800/80 flex flex-col gap-0.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-400 font-bold text-[11px]">{cf.label}</span>
+                            <span className="text-[9px] font-mono text-slate-500 bg-slate-900 px-1.5 py-0.5 rounded">{cf.field_type}</span>
+                          </div>
+                          {hasVal ? (
+                            <span className="text-white font-semibold text-xs break-all">{String(matched.value)}</span>
+                          ) : (
+                            <span className="text-slate-500 italic text-[11px] font-normal">Not set (Click Edit to set value)</span>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
 
               {/* Attachments Section */}
               <div className="pt-3 border-t border-slate-800">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
                     <Paperclip className="w-4 h-4 text-blue-400" /> Attachments ({ticket.attachments?.length || 0})
                   </h4>
-
-                  <label className="cursor-pointer bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-700 px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all">
-                    <Upload className="w-3.5 h-3.5" /> Upload Media (&lt;50KB WebP)
-                    <input type="file" onChange={handleFileUpload} className="hidden" />
-                  </label>
+                  <span className="text-[10px] text-slate-400 font-mono">
+                    Click 'Edit Ticket' above to add attachments
+                  </span>
                 </div>
-
-                {isUploading && (
-                  <div className="p-2 bg-blue-600/20 border border-blue-500/30 text-blue-300 text-xs rounded mb-3 font-semibold text-center animate-pulse">
-                    {uploadMessage}
-                  </div>
-                )}
 
                 <div className="space-y-4">
                   {ticket.attachments && ticket.attachments.length > 0 ? (
@@ -614,28 +920,14 @@ export const TicketDetailPage: React.FC = () => {
 
             {/* Discussion Area - Threaded Comments & @Mentions */}
             <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl space-y-4">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
-                <MessageSquare className="w-4 h-4 text-emerald-400" /> Discussion Thread & Mentions
-              </h3>
-
-              {/* Comment Box */}
-              <form onSubmit={handlePostComment} className="space-y-2">
-                <textarea
-                  rows={3}
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Write a comment... Use @username to mention team members."
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:border-blue-500 focus:outline-none"
-                />
-                <div className="flex justify-end">
-                  <button
-                    type="submit"
-                    className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-blue-600/30 cursor-pointer"
-                  >
-                    <Send className="w-3.5 h-3.5" /> Post Comment
-                  </button>
-                </div>
-              </form>
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 text-emerald-400" /> Discussion Thread & Mentions ({comments.length})
+                </h3>
+                <span className="text-[10px] text-slate-400 font-mono">
+                  Click 'Edit Ticket' to post comments
+                </span>
+              </div>
 
               {/* Comments List */}
               <div className="space-y-3 pt-2">

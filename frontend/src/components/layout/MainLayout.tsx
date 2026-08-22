@@ -24,6 +24,7 @@ import {
   X,
   Layers,
   Shield,
+  Building2,
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { GlobalSearchModal } from './GlobalSearchModal';

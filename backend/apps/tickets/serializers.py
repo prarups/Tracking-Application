@@ -59,7 +59,7 @@ class TicketSerializer(serializers.ModelSerializer):
     project_details = ProjectSerializer(source='project', read_only=True)
     custom_values = TicketCustomFieldValueSerializer(many=True, read_only=True)
     attachments = AttachmentSerializer(many=True, read_only=True)
-    subtask_count = serializers.IntegerField(source='subtasks.count', read_only=True)
+    subtask_count = serializers.IntegerField(source='subtasks_count_annotated', default=0, read_only=True)
 
     class Meta:
         model = Ticket

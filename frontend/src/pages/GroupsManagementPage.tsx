@@ -458,17 +458,6 @@ export const GroupsManagementPage: React.FC = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">Description</label>
-                <textarea
-                  rows={3}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
-                  placeholder="Department scope and responsibilities..."
-                />
-              </div>
-
               <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
                 <button
                   type="button"

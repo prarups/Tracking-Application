@@ -14,9 +14,6 @@ export const DynamicFormRenderer: React.FC<Props> = ({ fields, register, errors,
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-4 p-4 bg-slate-100/80 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
-      <div className="sm:col-span-2 text-xs font-bold text-slate-700 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 pb-2">
-        Custom Dynamic Fields
-      </div>
 
       {fields.map((field) => {
         const error = errors[field.field_key]?.message as string;

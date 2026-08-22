@@ -8,7 +8,7 @@ import 'ag-grid-community/styles/ag-theme-alpine.css';
 import { Ticket } from '@/types';
 import { useNavigate } from 'react-router-dom';
 import { axiosClient } from '@/api/axiosClient';
-import { Calendar, Clock, CheckCircle, AlertTriangle, Copy, Check } from 'lucide-react';
+import { Calendar, Clock, CheckCircle, AlertTriangle, Copy, Check, ExternalLink, Eye } from 'lucide-react';
 
 interface Props {
   tickets: Ticket[];
@@ -66,11 +66,11 @@ const CopyKeyCellRenderer: React.FC<any> = (props) => {
   };
 
   return (
-    <div className="flex items-center justify-between gap-1.5 h-full group">
+    <div className="flex items-center justify-between gap-2 h-full group whitespace-nowrap">
       <span
-        onClick={() => navigate(`/tickets/${props.data.id}`)}
-        className="font-mono font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer truncate"
-        title="Click to view ticket details"
+        onClick={() => navigate(`/tickets/${props.data.ticket_number || props.data.id}`)}
+        className="font-mono font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer tracking-tight"
+        title="Click to view full ticket"
       >
         {ticketKey}
       </span>
@@ -108,8 +108,8 @@ const TitleCellRenderer: React.FC<any> = (props) => {
   return (
     <div className="flex items-center justify-between gap-2 h-full group">
       <span
-        onClick={() => navigate(`/tickets/${props.data.id}`)}
-        className="font-semibold text-slate-100 hover:text-blue-400 cursor-pointer truncate"
+        onClick={() => navigate(`/tickets/${props.data.ticket_number || props.data.id}`)}
+        className="font-semibold text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer"
         title={title}
       >
         {title}
@@ -118,7 +118,7 @@ const TitleCellRenderer: React.FC<any> = (props) => {
         type="button"
         onClick={handleCopyTitle}
         title="Copy Ticket Key & Title Summary"
-        className="opacity-0 group-hover:opacity-100 p-1 rounded bg-slate-800/80 hover:bg-blue-600 text-slate-400 hover:text-white transition-all cursor-pointer flex-shrink-0"
+        className="opacity-0 group-hover:opacity-100 p-1 rounded bg-slate-200 dark:bg-slate-800/80 hover:bg-blue-600 hover:text-white text-slate-600 dark:text-slate-400 cursor-pointer transition-all flex-shrink-0"
       >
         {copied ? (
           <Check className="w-3 h-3 text-emerald-400" />
@@ -138,24 +138,37 @@ export const TicketAgGridTable: React.FC<Props> = ({ tickets, loading }) => {
     {
       field: 'ticket_number',
       headerName: 'Ticket Key',
-      width: 140,
+      width: 170,
       cellRenderer: CopyKeyCellRenderer,
     },
     {
+      field: 'assigned_group_details',
+      headerName: 'Group',
+      width: 140,
+      valueGetter: (params) => params.data?.assigned_group_details?.name || 'ddada',
+      cellRenderer: (params: any) => {
+        const grp = params.data?.assigned_group_details;
+        const name = grp?.name || 'ddada';
+        return (
+          <div className="flex items-center h-full" title={`Group: ${name}`}>
+            <span className="font-bold text-blue-600 dark:text-blue-400 text-xs">
+              {name}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
       field: 'title',
-      headerName: 'Summary',
+      headerName: 'Ticket Title',
       flex: 1,
-      minWidth: 220,
-      cellRenderer: (params: any) => (
-        <span className="font-bold text-slate-800 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-          {params.value}
-        </span>
-      ),
+      minWidth: 240,
+      cellRenderer: TitleCellRenderer,
     },
     {
       field: 'status',
       headerName: 'Status',
-      width: 150,
+      width: 130,
       cellRenderer: (params: any) => {
         const val = params.value;
         let colorClass = 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700';
@@ -166,13 +179,13 @@ export const TicketAgGridTable: React.FC<Props> = ({ tickets, loading }) => {
           colorClass = 'bg-blue-100 dark:bg-blue-500/20 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-500/40 font-semibold';
         } else if (val === 'IN_REVIEW') {
           colorClass = 'bg-purple-100 dark:bg-purple-500/20 text-purple-800 dark:text-purple-300 border-purple-300 dark:border-purple-500/40';
-        } else if (val === 'TODO') {
+        } else if (val === 'TODO' || val === 'OPEN') {
           colorClass = 'bg-slate-200 dark:bg-slate-700/40 text-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-600';
         }
 
         return (
           <span className={`text-[10px] px-2.5 py-0.5 rounded-md border tracking-wide uppercase ${colorClass}`}>
-            {val || 'TODO'}
+            {val || 'OPEN'}
           </span>
         );
       },
@@ -180,7 +193,7 @@ export const TicketAgGridTable: React.FC<Props> = ({ tickets, loading }) => {
     {
       field: 'priority',
       headerName: 'Priority',
-      width: 140,
+      width: 120,
       cellRenderer: (params: any) => {
         const val = params.value;
         let colorClass = 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700';
@@ -207,7 +220,7 @@ export const TicketAgGridTable: React.FC<Props> = ({ tickets, loading }) => {
     {
       field: 'assigned_user_details',
       headerName: 'Assignee',
-      width: 150,
+      width: 140,
       valueGetter: (params) => {
         const u = params.data?.assigned_user_details;
         if (!u) return 'Unassigned';
@@ -221,30 +234,17 @@ export const TicketAgGridTable: React.FC<Props> = ({ tickets, loading }) => {
       },
     },
     {
-      field: 'reporter_details',
-      headerName: 'Created By',
-      width: 150,
-      valueGetter: (params) => {
-        const rep = params.data?.reporter_details;
-        if (!rep) return 'System';
-        return rep.first_name ? `${rep.first_name} ${rep.last_name || ''}`.trim() : rep.username;
-      },
-      cellRenderer: (params: any) => {
-        const rep = params.data?.reporter_details;
-        if (!rep) return <span className="text-slate-400 text-xs font-mono">System</span>;
-        const displayName = rep.first_name ? `${rep.first_name} ${rep.last_name || ''}`.trim() : rep.username;
-        return (
-          <span className="font-semibold text-slate-800 dark:text-white text-xs">{displayName}</span>
-        );
-      },
-    },
-    {
-      field: 'created_at',
-      headerName: 'Created Date',
-      width: 140,
-      valueGetter: (params) => params.data?.created_at ? new Date(params.data.created_at).toLocaleDateString() : '',
+      field: 'actions',
+      headerName: 'Open Full Ticket',
+      width: 160,
       cellRenderer: (params: any) => (
-        <span className="font-mono text-xs text-slate-600 dark:text-slate-300 font-medium">{params.value}</span>
+        <button
+          type="button"
+          onClick={() => navigate(`/tickets/${params.data.id}`)}
+          className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-sm cursor-pointer"
+        >
+          <Eye className="w-3.5 h-3.5" /> View Entire Ticket
+        </button>
       ),
     },
   ];
@@ -267,6 +267,8 @@ export const TicketAgGridTable: React.FC<Props> = ({ tickets, loading }) => {
           rowHeight={46}
           headerHeight={44}
           animateRows={true}
+          onRowDoubleClicked={(event) => event.data?.id && navigate(`/tickets/${event.data.id}`)}
+          onRowClicked={(event) => event.data?.id && navigate(`/tickets/${event.data.id}`)}
         />
       )}
     </div>
