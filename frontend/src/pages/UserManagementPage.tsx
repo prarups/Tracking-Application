@@ -210,6 +210,10 @@ export const UserManagementPage: React.FC = () => {
   };
 
   const handleToggleUserActiveStatus = async (u: User) => {
+    if (currentUser && currentUser.id === u.id && u.is_active) {
+      alert('Safety Guard: You cannot disable your own active logged-in admin account!');
+      return;
+    }
     try {
       const updatedStatus = !u.is_active;
       await axiosClient.patch(`/auth/users/${u.id}/`, {
