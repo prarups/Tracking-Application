@@ -210,7 +210,7 @@ export const UserManagementPage: React.FC = () => {
   };
 
   const handleToggleUserActiveStatus = async (u: User) => {
-    if (currentUser && currentUser.id === u.id && u.is_active) {
+    if (currentUser && String(currentUser.id) === String(u.id) && u.is_active) {
       alert('Safety Guard: You cannot disable your own active logged-in admin account!');
       return;
     }

@@ -119,10 +119,20 @@ class UserViewSet(viewsets.ModelViewSet):
             return [IsAdminOrManager()]
         return super().get_permissions()
 
+    def update(self, request, *args, **kwargs):
+        user_obj = self.get_object()
+        is_active_val = request.data.get('is_active')
+        if is_active_val in [False, 'false', 'False', 0]:
+            if str(request.user.id) == str(user_obj.id):
+                return Response({'detail': 'Safety Guard: You cannot disable your own active logged-in admin account.'}, status=status.HTTP_400_BAD_REQUEST)
+        return super().update(request, *args, **kwargs)
+
     def partial_update(self, request, *args, **kwargs):
         user_obj = self.get_object()
-        if request.user.id == user_obj.id and request.data.get('is_active') is False:
-            return Response({'detail': 'Safety Guard: You cannot disable your own active logged-in admin account.'}, status=status.HTTP_400_BAD_REQUEST)
+        is_active_val = request.data.get('is_active')
+        if is_active_val in [False, 'false', 'False', 0]:
+            if str(request.user.id) == str(user_obj.id):
+                return Response({'detail': 'Safety Guard: You cannot disable your own active logged-in admin account.'}, status=status.HTTP_400_BAD_REQUEST)
         return super().partial_update(request, *args, **kwargs)
 
     def get_object(self):
