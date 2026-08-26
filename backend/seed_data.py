@@ -176,7 +176,7 @@ def seed():
             'title': 'Setup Django Channels & Redis WebSockets for instant notifications',
             'description': 'Ensure real-time notification popups and unread count badge update without page refresh.',
             'priority': PriorityChoices.HIGH,
-            'status': StatusChoices.TODO,
+            'status': StatusChoices.OPEN,
             'project': proj_dev,
             'assigned_group': group_objs['DEV'],
             'assigned_user': dev_user,

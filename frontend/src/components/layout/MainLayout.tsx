@@ -25,6 +25,7 @@ import {
   Layers,
   Shield,
   Building2,
+  Pin,
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { GlobalSearchModal } from './GlobalSearchModal';
@@ -45,6 +46,27 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [groups, setGroups] = useState<Group[]>([]);
   const [isGroupDropdownOpen, setIsGroupDropdownOpen] = useState(false);
+
+  // Pinned Groups State
+  const [pinnedGroupIds, setPinnedGroupIds] = useState<number[]>(() => {
+    try {
+      const saved = localStorage.getItem('pinned_group_ids');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const togglePinGroup = (groupId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setPinnedGroupIds((prev) => {
+      const next = prev.includes(groupId)
+        ? prev.filter((id) => id !== groupId)
+        : [...prev, groupId];
+      localStorage.setItem('pinned_group_ids', JSON.stringify(next));
+      return next;
+    });
+  };
 
   useEffect(() => {
     axiosClient
@@ -118,6 +140,80 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
             <span>
               TRACKING<span className="text-blue-500 font-light">HUB</span>
             </span>
+          </div>
+
+          {/* Department Group Selector Pill Dropdown with Pin Option */}
+          <div className="relative border-l border-slate-200 dark:border-slate-800 pl-3 ml-1 hidden sm:block">
+            <button
+              onClick={() => setIsGroupDropdownOpen(!isGroupDropdownOpen)}
+              className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700/60 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+            >
+              <Building2 className="w-3.5 h-3.5 text-blue-500" />
+              <span className="text-slate-900 dark:text-white max-w-[130px] truncate">
+                {selectedGroup ? `${selectedGroup.name} [${selectedGroup.code}]` : 'Select Dept Group'}
+              </span>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+            </button>
+
+            {isGroupDropdownOpen && (
+              <div className="absolute top-full left-3 mt-2 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 p-2 text-xs space-y-1">
+                <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
+                  <span>Department Groups</span>
+                  <span className="text-amber-500 flex items-center gap-1 font-semibold">
+                    <Pin className="w-3 h-3 fill-amber-500" /> {pinnedGroupIds.length} Pinned
+                  </span>
+                </div>
+                <div className="max-h-60 overflow-y-auto space-y-0.5">
+                  {groups
+                    .slice()
+                    .sort((a, b) => {
+                      const isAPinned = pinnedGroupIds.includes(a.id);
+                      const isBPinned = pinnedGroupIds.includes(b.id);
+                      if (isAPinned && !isBPinned) return -1;
+                      if (!isAPinned && isBPinned) return 1;
+                      return (a.code || '').localeCompare(b.code || '');
+                    })
+                    .map((g) => {
+                      const isPinned = pinnedGroupIds.includes(g.id);
+                      const isSelected = selectedGroup?.id === g.id;
+                      return (
+                        <div
+                          key={g.id}
+                          onClick={() => {
+                            dispatch(setSelectedGroup(g));
+                            setIsGroupDropdownOpen(false);
+                          }}
+                          className={`flex items-center justify-between px-2.5 py-2 rounded-xl cursor-pointer transition-all ${
+                            isSelected
+                              ? 'bg-blue-600 text-white font-bold'
+                              : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 truncate">
+                            <span
+                              className="w-2 h-2 rounded-full flex-shrink-0"
+                              style={{ backgroundColor: g.color || '#3B82F6' }}
+                            />
+                            <span className="truncate">{g.name}</span>
+                            <span className="font-mono text-[10px] opacity-75">[{g.code}]</span>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={(e) => togglePinGroup(g.id, e)}
+                            title={isPinned ? 'Unpin Group' : 'Pin Group'}
+                            className={`p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 transition-all ${
+                              isPinned ? 'text-amber-400' : 'text-slate-400 hover:text-amber-400'
+                            }`}
+                          >
+                            <Pin className={`w-3 h-3 ${isPinned ? 'fill-amber-400' : ''}`} />
+                          </button>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

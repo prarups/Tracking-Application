@@ -24,6 +24,7 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  Pin,
 } from 'lucide-react';
 
 export const GroupsManagementPage: React.FC = () => {
@@ -36,8 +37,30 @@ export const GroupsManagementPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
   const [searchQuery, setSearchQuery] = useState('');
+  const [pinnedOnlyFilter, setPinnedOnlyFilter] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
+
+  // Pinned Groups State (persisted in localStorage)
+  const [pinnedGroupIds, setPinnedGroupIds] = useState<number[]>(() => {
+    try {
+      const saved = localStorage.getItem('pinned_group_ids');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const togglePinGroup = (groupId: number, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setPinnedGroupIds((prev) => {
+      const next = prev.includes(groupId)
+        ? prev.filter((id) => id !== groupId)
+        : [...prev, groupId];
+      localStorage.setItem('pinned_group_ids', JSON.stringify(next));
+      return next;
+    });
+  };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [name, setName] = useState('');
@@ -178,9 +201,10 @@ export const GroupsManagementPage: React.FC = () => {
     navigate('/tickets', { state: { openCreate: true } });
   };
 
-  // Filter and sort groups by search query in DESCENDING ORDER by code
+  // Filter and sort groups by search query and pinned status (Pinned groups first)
   const filteredGroups = groups
     .filter((g) => {
+      if (pinnedOnlyFilter && !pinnedGroupIds.includes(g.id)) return false;
       if (!searchQuery.trim()) return true;
       const q = searchQuery.trim().toLowerCase();
       return (
@@ -189,7 +213,13 @@ export const GroupsManagementPage: React.FC = () => {
         (g.description || '').toLowerCase().includes(q)
       );
     })
-    .sort((a, b) => (b.code || '').localeCompare(a.code || ''));
+    .sort((a, b) => {
+      const isAPinned = pinnedGroupIds.includes(a.id);
+      const isBPinned = pinnedGroupIds.includes(b.id);
+      if (isAPinned && !isBPinned) return -1;
+      if (!isAPinned && isBPinned) return 1;
+      return (b.code || '').localeCompare(a.code || '');
+    });
 
   // Pagination logic
   const totalPages = Math.ceil(filteredGroups.length / pageSize) || 1;
@@ -213,6 +243,23 @@ export const GroupsManagementPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
+          {/* Pinned Only Filter Button */}
+          <button
+            type="button"
+            onClick={() => {
+              setPinnedOnlyFilter(!pinnedOnlyFilter);
+              setCurrentPage(1);
+            }}
+            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+              pinnedOnlyFilter
+                ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md shadow-amber-500/20'
+                : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
+          >
+            <Pin className={`w-3.5 h-3.5 ${pinnedOnlyFilter ? 'fill-slate-950' : 'text-amber-500'}`} />
+            <span>Pinned ({pinnedGroupIds.length})</span>
+          </button>
+
           {/* Search Filter input */}
           <div className="relative w-full sm:w-64">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -294,6 +341,7 @@ export const GroupsManagementPage: React.FC = () => {
               <table className="w-full text-left text-xs text-slate-800 dark:text-slate-300">
                 <thead className="bg-slate-100 dark:bg-slate-950/80 text-slate-700 dark:text-slate-400 uppercase tracking-wider font-bold text-[10px] border-b border-slate-200 dark:border-slate-800">
                   <tr>
+                    <th className="px-3 py-3.5 w-10 text-center">Pin</th>
                     <th className="px-5 py-3.5">Group Code</th>
                     <th className="px-5 py-3.5">Department Name</th>
                     <th className="px-5 py-3.5">Assigned Members / Rights</th>
@@ -303,12 +351,29 @@ export const GroupsManagementPage: React.FC = () => {
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
                   {paginatedGroups.map((g) => {
                     const membersList = (g as any).members_details || [];
+                    const isPinned = pinnedGroupIds.includes(g.id);
                     return (
                       <tr
                         key={g.id}
                         onClick={() => handleViewGroupTickets(g)}
-                        className="hover:bg-slate-100/80 dark:hover:bg-slate-800/40 transition-colors cursor-pointer group"
+                        className={`hover:bg-slate-100/80 dark:hover:bg-slate-800/40 transition-colors cursor-pointer group ${
+                          isPinned ? 'bg-amber-500/[0.03] dark:bg-amber-500/[0.05]' : ''
+                        }`}
                       >
+                        <td className="px-3 py-4 text-center" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            type="button"
+                            onClick={(e) => togglePinGroup(g.id, e)}
+                            title={isPinned ? 'Unpin Group' : 'Pin Group to top'}
+                            className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                              isPinned
+                                ? 'text-amber-500 bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20'
+                                : 'text-slate-400 hover:text-amber-500 hover:bg-slate-200 dark:hover:bg-slate-800'
+                            }`}
+                          >
+                            <Pin className={`w-3.5 h-3.5 ${isPinned ? 'fill-amber-500' : ''}`} />
+                          </button>
+                        </td>
                         <td className="px-5 py-4 font-mono font-bold">
                           <span
                             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold border"
@@ -323,7 +388,14 @@ export const GroupsManagementPage: React.FC = () => {
                           </span>
                         </td>
                         <td className="px-5 py-4 font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                          <div>{g.name}</div>
+                          <div className="flex items-center gap-2">
+                            <span>{g.name}</span>
+                            {isPinned && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/30">
+                                <Pin className="w-2.5 h-2.5 fill-amber-500" /> Pinned
+                              </span>
+                            )}
+                          </div>
                           <div className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">{g.description || 'Department workspace.'}</div>
                         </td>
                         <td className="px-5 py-4 text-slate-700 dark:text-slate-300 font-medium">
