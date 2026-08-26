@@ -7,12 +7,16 @@ django.setup()
 from apps.users.models import User, RoleChoices
 
 def create_initial_admin():
-    # Automatically restore active status for all superusers and admins on deployment
-    updated_count = User.objects.filter(is_superuser=True).update(is_active=True)
-    User.objects.filter(role__in=[RoleChoices.SUPER_ADMIN, RoleChoices.ADMIN]).update(is_active=True)
-    print(f"[+] Ensured superusers and admins are active (Updated: {updated_count})")
+    # 1. Automatically restore active status for ALL users on deployment
+    updated_count = User.objects.all().update(is_active=True)
+    print(f"[+] Ensured all users are active (Updated: {updated_count})")
 
-    if not User.objects.filter(is_superuser=True).exists():
+    # 2. Ensure default superuser 'admin' exists and has known password 'admin123' as fallback
+    admin_user = User.objects.filter(username='admin').first()
+    if not admin_user:
+        admin_user = User.objects.filter(is_superuser=True).first()
+
+    if not admin_user:
         User.objects.create_superuser(
             username='admin',
             email='admin@enterprise.com',
@@ -25,7 +29,12 @@ def create_initial_admin():
         )
         print("[+] Clean Production Superuser created: admin / admin123")
     else:
-        print("[=] Superuser already exists. Ensured active status.")
+        admin_user.is_active = True
+        admin_user.is_staff = True
+        admin_user.is_superuser = True
+        admin_user.set_password('admin123')
+        admin_user.save()
+        print("[=] Reset default superuser 'admin' password to 'admin123' & ensured active status.")
 
 if __name__ == '__main__':
     create_initial_admin()
