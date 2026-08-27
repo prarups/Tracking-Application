@@ -20,6 +20,8 @@ import {
   Circle,
   Edit3,
   Sparkles,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 
 export const UserManagementPage: React.FC = () => {
@@ -40,6 +42,7 @@ export const UserManagementPage: React.FC = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showCreatePassword, setShowCreatePassword] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [role, setRole] = useState<Role>('EMPLOYEE');
@@ -48,6 +51,7 @@ export const UserManagementPage: React.FC = () => {
 
   // Edit User Modal State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [showEditPassword, setShowEditPassword] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [editUsername, setEditUsername] = useState('');
   const [editEmail, setEditEmail] = useState('');
@@ -397,22 +401,26 @@ export const UserManagementPage: React.FC = () => {
                     return (
                       <tr key={u.id} className="hover:bg-slate-100/80 dark:hover:bg-slate-800/40 transition-colors">
                         <td className="px-4 py-3.5 font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-600/20 text-blue-700 dark:text-blue-400 font-bold flex items-center justify-center text-xs border border-blue-300 dark:border-blue-500/30 relative">
-                            {u.username.charAt(0).toUpperCase()}
+                          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-bold flex items-center justify-center text-xs border border-blue-400/30 relative overflow-hidden shadow-sm flex-shrink-0">
+                            {u.avatar ? (
+                              <img src={u.avatar} alt={u.username} className="w-full h-full object-cover" />
+                            ) : (
+                              <span>{u.first_name ? u.first_name[0].toUpperCase() : u.username[0].toUpperCase()}</span>
+                            )}
                             {online && (
                               <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full" />
                             )}
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="font-bold text-slate-900 dark:text-white text-xs">{u.username}</span>
-                              {u.employee_id && (
-                                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-500/30">
-                                  {u.employee_id}
-                                </span>
-                              )}
+                              <span className="font-bold text-slate-900 dark:text-white text-xs">
+                                {u.first_name ? `${u.first_name} ${u.last_name || ''}` : u.username}
+                              </span>
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-500/30">
+                                {u.employee_id || 'TRA0001'}
+                              </span>
                             </div>
-                            <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">{u.email}</div>
+                            <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">@{u.username} • {u.email}</div>
                           </div>
                         </td>
                         <td className="px-4 py-3.5">
@@ -541,7 +549,7 @@ export const UserManagementPage: React.FC = () => {
       {/* Create User Modal */}
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/70 backdrop-blur-md p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-md p-6 text-slate-900 dark:text-white">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 text-slate-900 dark:text-white">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
               <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <UserPlus className="w-5 h-5 text-blue-600 dark:text-blue-400" /> Create New User Account
@@ -598,15 +606,25 @@ export const UserManagementPage: React.FC = () => {
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   Password <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none shadow-sm"
-                  placeholder="Minimum 6 characters"
-                />
+                <div className="relative">
+                  <input
+                    type={showCreatePassword ? 'text' : 'password'}
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl pl-3.5 pr-10 py-2 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none shadow-sm"
+                    placeholder="Minimum 6 characters"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCreatePassword(!showCreatePassword)}
+                    className="absolute right-3 top-2 text-slate-400 hover:text-slate-700 dark:hover:text-white p-0.5 cursor-pointer transition-colors"
+                    title={showCreatePassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showCreatePassword ? <EyeOff className="w-4 h-4 text-blue-500" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -689,23 +707,23 @@ export const UserManagementPage: React.FC = () => {
 
       {/* Grant/Revoke Department Group Access Rights Modal */}
       {isRightsModalOpen && selectedUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl w-full max-w-lg p-6">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/70 backdrop-blur-md p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-lg p-6 text-slate-900 dark:text-white">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
               <div>
                 <div className="flex items-center gap-2.5 flex-wrap">
-                  <h3 className="text-base font-bold text-white flex items-center gap-2">
-                    <Shield className="w-5 h-5 text-purple-400" /> Group Access Rights: @{selectedUser.username}
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-purple-600 dark:text-purple-400" /> Group Access Rights: @{selectedUser.username}
                   </h3>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-purple-100 dark:bg-purple-500/20 text-purple-800 dark:text-purple-300 border border-purple-300 dark:border-purple-500/30">
                     {userGroupRights.length} / {groups.length} Groups Granted
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-1">
-                  Currently has access rights to <span className="text-emerald-400 font-bold font-mono">{userGroupRights.length}</span> out of <span className="text-white font-bold font-mono">{groups.length}</span> department groups.
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1">
+                  Currently has access rights to <span className="text-emerald-600 dark:text-emerald-400 font-bold font-mono">{userGroupRights.length}</span> out of <span className="text-slate-900 dark:text-white font-bold font-mono">{groups.length}</span> department groups.
                 </p>
               </div>
-              <button onClick={() => setIsRightsModalOpen(false)} className="text-slate-400 hover:text-white cursor-pointer">
+              <button onClick={() => setIsRightsModalOpen(false)} className="text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -718,12 +736,12 @@ export const UserManagementPage: React.FC = () => {
                 value={rightsSearchQuery}
                 onChange={(e) => setRightsSearchQuery(e.target.value)}
                 placeholder="Search department group by Name or Code (e.g. TR0001)..."
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none transition-all"
+                className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl pl-9 pr-8 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-blue-500 focus:outline-none transition-all shadow-sm"
               />
               {rightsSearchQuery && (
                 <button
                   onClick={() => setRightsSearchQuery('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -744,14 +762,16 @@ export const UserManagementPage: React.FC = () => {
                     <div
                       key={g.id}
                       className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between ${
-                        hasAccess ? 'bg-blue-950/30 border-blue-500/40' : 'bg-slate-950/60 border-slate-800'
+                        hasAccess
+                          ? 'bg-blue-50 dark:bg-blue-950/30 border-blue-300 dark:border-blue-500/40'
+                          : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800'
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         <span className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: g.color }} />
                         <div>
-                          <div className="font-bold text-xs text-white">{g.name}</div>
-                          <div className="text-[10px] text-slate-400 font-mono">[{g.code}]</div>
+                          <div className="font-bold text-xs text-slate-900 dark:text-white">{g.name}</div>
+                          <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">[{g.code}]</div>
                         </div>
                       </div>
 
@@ -759,8 +779,8 @@ export const UserManagementPage: React.FC = () => {
                         onClick={() => toggleGroupAccess(g.id, hasAccess)}
                         className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
                           hasAccess
-                            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-red-500/20 hover:text-red-300 hover:border-red-500/40'
-                            : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-blue-600 hover:text-white'
+                            ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/40 hover:bg-red-100 dark:hover:bg-red-500/20 hover:text-red-800 dark:hover:text-red-300'
+                            : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-400 border-slate-300 dark:border-slate-700 hover:bg-blue-600 hover:text-white'
                         }`}
                       >
                         {hasAccess ? 'Granted (Revoke)' : 'Grant Access'}
@@ -770,10 +790,10 @@ export const UserManagementPage: React.FC = () => {
                 })}
             </div>
 
-            <div className="flex justify-end pt-4 border-t border-slate-800 mt-4">
+            <div className="flex justify-end pt-4 border-t border-slate-200 dark:border-slate-800 mt-4">
               <button
                 onClick={() => setIsRightsModalOpen(false)}
-                className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold shadow-lg shadow-blue-600/30 cursor-pointer"
+                className="px-5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-bold shadow-lg shadow-blue-600/30 cursor-pointer"
               >
                 Done & Save Permissions
               </button>
@@ -784,13 +804,13 @@ export const UserManagementPage: React.FC = () => {
 
       {/* Edit User Account Details Modal */}
       {isEditModalOpen && editingUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl w-full max-w-md p-6">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <Edit3 className="w-5 h-5 text-blue-400" /> Edit Employee Details: @{editingUser.username}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/70 backdrop-blur-md p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 text-slate-900 dark:text-white">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Edit3 className="w-5 h-5 text-blue-600 dark:text-blue-400" /> Edit Employee Details: @{editingUser.username}
               </h3>
-              <button onClick={() => setIsEditModalOpen(false)} className="text-slate-400 hover:text-white cursor-pointer">
+              <button onClick={() => setIsEditModalOpen(false)} className="text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -804,50 +824,50 @@ export const UserManagementPage: React.FC = () => {
 
             <form onSubmit={handleSaveEditUser} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">Username</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Username</label>
                 <input
                   type="text"
                   required
                   value={editUsername}
                   onChange={(e) => setEditUsername(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none shadow-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">Email Address</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Email Address</label>
                 <input
                   type="email"
                   required
                   value={editEmail}
                   onChange={(e) => setEditEmail(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none shadow-sm"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">First Name</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">First Name</label>
                   <input
                     type="text"
                     value={editFirstName}
                     onChange={(e) => setEditFirstName(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none shadow-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">Last Name</label>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Last Name</label>
                   <input
                     type="text"
                     value={editLastName}
                     onChange={(e) => setEditLastName(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none shadow-sm"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">System & Dynamic Role</label>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">System & Dynamic Role</label>
                 <select
                   value={editCustomRoleId ? `CUSTOM_${editCustomRoleId}` : editRole}
                   onChange={(e) => {
@@ -861,20 +881,20 @@ export const UserManagementPage: React.FC = () => {
                       setEditRole(val as Role);
                     }
                   }}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-blue-500 focus:outline-none cursor-pointer font-semibold"
+                  className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none cursor-pointer font-semibold shadow-sm"
                 >
                   <optgroup label="System Roles">
-                    <option value="SUPER_ADMIN">Super Admin</option>
-                    <option value="ADMIN">Admin</option>
-                    <option value="MANAGER">Manager</option>
-                    <option value="TEAM_LEAD">Team Lead</option>
-                    <option value="EMPLOYEE">Employee</option>
-                    <option value="VIEWER">Viewer</option>
+                    <option value="SUPER_ADMIN" className="bg-white dark:bg-slate-900">Super Admin</option>
+                    <option value="ADMIN" className="bg-white dark:bg-slate-900">Admin</option>
+                    <option value="MANAGER" className="bg-white dark:bg-slate-900">Manager</option>
+                    <option value="TEAM_LEAD" className="bg-white dark:bg-slate-900">Team Lead</option>
+                    <option value="EMPLOYEE" className="bg-white dark:bg-slate-900">Employee</option>
+                    <option value="VIEWER" className="bg-white dark:bg-slate-900">Viewer</option>
                   </optgroup>
                   {customRoles.length > 0 && (
                     <optgroup label="✨ Dynamic Custom Roles">
                       {customRoles.map((cr) => (
-                        <option key={cr.id} value={`CUSTOM_${cr.id}`}>
+                        <option key={cr.id} value={`CUSTOM_${cr.id}`} className="bg-white dark:bg-slate-900">
                           ✨ Dynamic: {cr.name}
                         </option>
                       ))}
@@ -884,23 +904,33 @@ export const UserManagementPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">
-                  Reset Account Password <span className="text-slate-500 font-normal">(Optional - Leave blank to keep current)</span>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Reset Account Password <span className="text-slate-400 font-normal">(Optional - Leave blank to keep current)</span>
                 </label>
-                <input
-                  type="password"
-                  value={editNewPassword}
-                  onChange={(e) => setEditNewPassword(e.target.value)}
-                  placeholder="Enter new password (min 6 characters)..."
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
-                />
+                <div className="relative">
+                  <input
+                    type={showEditPassword ? 'text' : 'password'}
+                    value={editNewPassword}
+                    onChange={(e) => setEditNewPassword(e.target.value)}
+                    placeholder="Enter new password (min 6 characters)..."
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl pl-3.5 pr-10 py-2 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none shadow-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowEditPassword(!showEditPassword)}
+                    className="absolute right-3 top-2 text-slate-400 hover:text-slate-700 dark:hover:text-white p-0.5 cursor-pointer transition-colors"
+                    title={showEditPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showEditPassword ? <EyeOff className="w-4 h-4 text-blue-500" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-300 text-xs font-bold cursor-pointer"
                 >
                   Cancel
                 </button>

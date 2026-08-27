@@ -12,8 +12,9 @@ from apps.notifications.utils import notify_ticket_event
 
 class TicketViewSet(viewsets.ModelViewSet):
     queryset = Ticket.objects.all().select_related(
-        'project', 'assigned_group', 'assigned_user', 'reporter'
+        'project', 'assigned_group', 'assigned_group__lead', 'assigned_user', 'reporter'
     ).prefetch_related(
+        'assigned_group__members',
         Prefetch('custom_values', queryset=TicketCustomFieldValue.objects.select_related('custom_field')),
         Prefetch('attachments', queryset=Attachment.objects.select_related('uploaded_by')),
         'watchers'

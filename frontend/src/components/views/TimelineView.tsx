@@ -1,6 +1,7 @@
 import React from 'react';
 import { Ticket } from '@/types';
 import { useNavigate } from 'react-router-dom';
+import { navigateToTicket } from '@/utils/navigation';
 import { GitCommit, ArrowRight } from 'lucide-react';
 
 interface Props {
@@ -24,7 +25,7 @@ export const TimelineView: React.FC<Props> = ({ tickets }) => {
             <span className="absolute -left-[9px] top-1.5 w-4 h-4 rounded-full bg-blue-500 ring-4 ring-slate-900" />
 
             <div
-              onClick={() => navigate(`/tickets/${t.id}`)}
+              onClick={(e) => navigateToTicket(e, t.ticket_number || t.id, navigate)}
               className="p-4 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-blue-500 cursor-pointer transition-all flex items-center justify-between"
             >
               <div>

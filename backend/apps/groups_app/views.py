@@ -1,7 +1,7 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q
+from django.db.models import Q, Count
 from .models import Group, GroupMember
 from .serializers import GroupSerializer, GroupMemberSerializer
 from apps.users.permissions import IsSuperAdminOrAdmin
@@ -20,12 +20,16 @@ class GroupViewSet(viewsets.ModelViewSet):
         if not user or not user.is_authenticated:
             return Group.objects.none()
         
+        base_qs = Group.objects.select_related('lead').annotate(
+            member_count_annotated=Count('members', distinct=True)
+        ).prefetch_related('members').order_by('-code')
+
         # Super Admin and Admin can access all groups
         if user.role in ['SUPER_ADMIN', 'ADMIN'] or user.is_superuser or user.is_staff:
-            return Group.objects.all().prefetch_related('members').order_by('-code')
+            return base_qs
         
         # Standard users only see groups they are explicitly granted access to (via member or lead)
-        return Group.objects.filter(Q(members=user) | Q(lead=user)).distinct().prefetch_related('members').order_by('-code')
+        return base_qs.filter(Q(members=user) | Q(lead=user)).distinct()
 
     def perform_create(self, serializer):
         code = serializer.validated_data.get('code')

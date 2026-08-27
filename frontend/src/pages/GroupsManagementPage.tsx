@@ -486,7 +486,7 @@ export const GroupsManagementPage: React.FC = () => {
       {/* Create Group Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/70 backdrop-blur-md p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-md p-6 text-slate-900 dark:text-white">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 text-slate-900 dark:text-white">
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 mb-4">
               <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Plus className="w-5 h-5 text-blue-600 dark:text-blue-400" /> Create Department Group
@@ -553,21 +553,21 @@ export const GroupsManagementPage: React.FC = () => {
 
       {/* Modal: Group Access Rights & Team Members */}
       {isAccessModalOpen && editingGroup && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl w-full max-w-lg p-6 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/75 backdrop-blur-md p-4">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 space-y-4 text-slate-900 dark:text-white">
             {!canManageGroups ? (
               /* Read-Only Modal for Non-Admins */
               <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                   <div>
-                    <h3 className="text-base font-bold text-white flex items-center gap-2">
-                      <Users className="w-5 h-5 text-blue-400" /> Group Access Rights: <span className="text-blue-400 font-mono">[{editingGroup.code}]</span>
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" /> Group Access Rights: <span className="text-blue-600 dark:text-blue-400 font-mono">[{editingGroup.code}]</span>
                     </h3>
-                    <p className="text-xs text-slate-400 mt-0.5">
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                       Members who have active access rights to {editingGroup.name}
                     </p>
                   </div>
-                  <button onClick={() => setIsAccessModalOpen(false)} className="text-slate-400 hover:text-white cursor-pointer">
+                  <button onClick={() => setIsAccessModalOpen(false)} className="text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
@@ -575,17 +575,17 @@ export const GroupsManagementPage: React.FC = () => {
                 <div className="max-h-72 overflow-y-auto space-y-2 pr-1">
                   {((editingGroup as any).members_details && (editingGroup as any).members_details.length > 0) ? (
                     (editingGroup as any).members_details.map((m: any) => (
-                      <div key={m.id} className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800/80 flex items-center justify-between">
+                      <div key={m.id} className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800/80 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 border border-blue-400/30 flex items-center justify-center font-bold text-xs text-white shadow-md">
                             {m.first_name ? m.first_name[0].toUpperCase() : m.username[0].toUpperCase()}
                           </div>
                           <div>
-                            <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                            <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                               <span>{m.first_name ? `${m.first_name} ${m.last_name || ''}` : m.username}</span>
-                              <span className="text-slate-400 font-normal text-[11px]">(@{m.username})</span>
+                              <span className="text-slate-500 dark:text-slate-400 font-normal text-[11px]">(@{m.username})</span>
                             </div>
-                            <div className="text-[10px] text-slate-400 font-mono mt-0.5 flex items-center gap-2">
+                            <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5 flex items-center gap-2">
                               <span>ID: {m.employee_id || 'N/A'}</span>
                               <span>•</span>
                               <span>{m.email}</span>
@@ -593,27 +593,27 @@ export const GroupsManagementPage: React.FC = () => {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-lg bg-blue-500/10 text-blue-400 font-bold border border-blue-500/20">
+                          <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-lg bg-blue-100 dark:bg-blue-500/10 text-blue-800 dark:text-blue-400 font-bold border border-blue-300 dark:border-blue-500/20">
                             {m.role}
                           </span>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-emerald-100 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-500/20">
                             Has Access Rights
                           </span>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="p-8 text-center text-xs text-slate-400 border border-slate-800/80 rounded-2xl bg-slate-950/40">
+                    <div className="p-8 text-center text-xs text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800/80 rounded-2xl bg-slate-50 dark:bg-slate-950/40">
                       No team members currently assigned to this group.
                     </div>
                   )}
                 </div>
 
-                <div className="pt-3 border-t border-slate-800 flex justify-end">
+                <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex justify-end">
                   <button
                     type="button"
                     onClick={() => setIsAccessModalOpen(false)}
-                    className="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold cursor-pointer transition-all"
+                    className="px-5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-300 text-xs font-bold cursor-pointer transition-all"
                   >
                     Close Window
                   </button>
@@ -622,16 +622,16 @@ export const GroupsManagementPage: React.FC = () => {
             ) : (
               /* Interactive Access Rights Assignment Modal for Admins */
               <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3">
                   <div>
-                    <h3 className="text-base font-bold text-white flex items-center gap-2">
-                      <UserPlus className="w-5 h-5 text-blue-400" /> Assign Rights to Group: <span className="text-blue-400 font-mono">[{editingGroup.code}]</span>
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <UserPlus className="w-5 h-5 text-blue-600 dark:text-blue-400" /> Assign Rights to Group: <span className="text-blue-600 dark:text-blue-400 font-mono">[{editingGroup.code}]</span>
                     </h3>
-                    <p className="text-xs text-slate-400 mt-0.5">
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                       Select which team members have access rights to {editingGroup.name}. Only checked users can be assigned tickets.
                     </p>
                   </div>
-                  <button onClick={() => setIsAccessModalOpen(false)} className="text-slate-400 hover:text-white cursor-pointer">
+                  <button onClick={() => setIsAccessModalOpen(false)} className="text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
@@ -644,12 +644,12 @@ export const GroupsManagementPage: React.FC = () => {
                     value={modalUserSearchQuery}
                     onChange={(e) => setModalUserSearchQuery(e.target.value)}
                     placeholder="Search user by username, email, or role (e.g. john_dev)..."
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-8 py-2 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none transition-all"
+                    className="w-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl pl-9 pr-8 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:border-blue-500 focus:outline-none transition-all shadow-sm"
                   />
                   {modalUserSearchQuery && (
                     <button
                       onClick={() => setModalUserSearchQuery('')}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-900 dark:hover:text-white cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -675,18 +675,18 @@ export const GroupsManagementPage: React.FC = () => {
                           onClick={() => toggleUserAccess(u.id)}
                           className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
                             isSelected
-                              ? 'bg-blue-600/10 border-blue-500/40 text-white font-bold'
-                              : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:bg-slate-800/40 hover:text-white'
+                              ? 'bg-blue-50 dark:bg-blue-600/10 border-blue-300 dark:border-blue-500/40 text-slate-900 dark:text-white font-bold'
+                              : 'bg-slate-50 dark:bg-slate-950/60 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/40'
                           }`}
                         >
                           <div className="flex items-center gap-3">
-                            {isSelected ? <CheckSquare className="w-4 h-4 text-blue-400" /> : <Square className="w-4 h-4 text-slate-600" />}
+                            {isSelected ? <CheckSquare className="w-4 h-4 text-blue-600 dark:text-blue-400" /> : <Square className="w-4 h-4 text-slate-400 dark:text-slate-600" />}
                             <div>
-                              <div className="text-xs font-bold text-white">{u.username}</div>
-                              <div className="text-[10px] text-slate-400 font-mono">{u.email || u.role}</div>
+                              <div className="text-xs font-bold text-slate-900 dark:text-white">{u.username}</div>
+                              <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">{u.email || u.role}</div>
                             </div>
                           </div>
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-blue-400 font-bold border border-slate-700">
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 font-bold border border-slate-200 dark:border-slate-700 shadow-sm">
                             {u.role}
                           </span>
                         </div>
@@ -694,11 +694,11 @@ export const GroupsManagementPage: React.FC = () => {
                     })}
                 </div>
 
-                <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
+                <div className="flex justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
                   <button
                     type="button"
                     onClick={() => setIsAccessModalOpen(false)}
-                    className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold cursor-pointer"
+                    className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-300 text-xs font-bold cursor-pointer"
                   >
                     Cancel
                   </button>

@@ -26,6 +26,7 @@ import {
   Shield,
   Building2,
   Pin,
+  User as UserIcon,
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { GlobalSearchModal } from './GlobalSearchModal';
@@ -101,6 +102,7 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
     { label: 'Dynamic Roles', path: '/roles', icon: Shield, roleRequired: ['SUPER_ADMIN', 'ADMIN', 'MANAGER'] },
     { label: 'Form Builder', path: '/form-builder', icon: Sliders, roleRequired: ['SUPER_ADMIN', 'ADMIN', 'MANAGER'] },
     { label: 'Audit Timeline', path: '/audit-logs', icon: History },
+    { label: 'My DP Profile', path: '/profile', icon: UserIcon },
   ];
 
   return (
@@ -142,79 +144,7 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
             </span>
           </div>
 
-          {/* Department Group Selector Pill Dropdown with Pin Option */}
-          <div className="relative border-l border-slate-200 dark:border-slate-800 pl-3 ml-1 hidden sm:block">
-            <button
-              onClick={() => setIsGroupDropdownOpen(!isGroupDropdownOpen)}
-              className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700/60 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
-            >
-              <Building2 className="w-3.5 h-3.5 text-blue-500" />
-              <span className="text-slate-900 dark:text-white max-w-[130px] truncate">
-                {selectedGroup ? `${selectedGroup.name} [${selectedGroup.code}]` : 'Select Dept Group'}
-              </span>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-            </button>
 
-            {isGroupDropdownOpen && (
-              <div className="absolute top-full left-3 mt-2 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-50 p-2 text-xs space-y-1">
-                <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center justify-between">
-                  <span>Department Groups</span>
-                  <span className="text-amber-500 flex items-center gap-1 font-semibold">
-                    <Pin className="w-3 h-3 fill-amber-500" /> {pinnedGroupIds.length} Pinned
-                  </span>
-                </div>
-                <div className="max-h-60 overflow-y-auto space-y-0.5">
-                  {groups
-                    .slice()
-                    .sort((a, b) => {
-                      const isAPinned = pinnedGroupIds.includes(a.id);
-                      const isBPinned = pinnedGroupIds.includes(b.id);
-                      if (isAPinned && !isBPinned) return -1;
-                      if (!isAPinned && isBPinned) return 1;
-                      return (a.code || '').localeCompare(b.code || '');
-                    })
-                    .map((g) => {
-                      const isPinned = pinnedGroupIds.includes(g.id);
-                      const isSelected = selectedGroup?.id === g.id;
-                      return (
-                        <div
-                          key={g.id}
-                          onClick={() => {
-                            dispatch(setSelectedGroup(g));
-                            setIsGroupDropdownOpen(false);
-                          }}
-                          className={`flex items-center justify-between px-2.5 py-2 rounded-xl cursor-pointer transition-all ${
-                            isSelected
-                              ? 'bg-blue-600 text-white font-bold'
-                              : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-medium'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 truncate">
-                            <span
-                              className="w-2 h-2 rounded-full flex-shrink-0"
-                              style={{ backgroundColor: g.color || '#3B82F6' }}
-                            />
-                            <span className="truncate">{g.name}</span>
-                            <span className="font-mono text-[10px] opacity-75">[{g.code}]</span>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={(e) => togglePinGroup(g.id, e)}
-                            title={isPinned ? 'Unpin Group' : 'Pin Group'}
-                            className={`p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 transition-all ${
-                              isPinned ? 'text-amber-400' : 'text-slate-400 hover:text-amber-400'
-                            }`}
-                          >
-                            <Pin className={`w-3 h-3 ${isPinned ? 'fill-amber-400' : ''}`} />
-                          </button>
-                        </div>
-                      );
-                    })}
-                </div>
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Search & Actions */}
@@ -264,16 +194,40 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
 
           {/* User Profile */}
           <div className="flex items-center gap-2 sm:gap-3 border-l border-slate-300 dark:border-slate-800 pl-2 sm:pl-3">
-            <div className="text-right hidden sm:block">
-              <div className="text-xs font-bold text-slate-900 dark:text-white">{user?.username}</div>
-              <div className="text-[10px] font-mono text-blue-600 dark:text-blue-400 font-semibold">{user?.role}</div>
-            </div>
+            <Link
+              to="/profile"
+              className="flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-slate-100/80 dark:bg-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-800 transition-all cursor-pointer shadow-sm group"
+              title="View & Edit My DP Profile"
+            >
+              {/* Dynamic DP Avatar */}
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 border border-blue-400/30 overflow-hidden flex items-center justify-center font-bold text-xs text-white shadow-sm flex-shrink-0 group-hover:scale-105 transition-transform">
+                {user?.avatar ? (
+                  <img src={user.avatar} alt={user.username} className="w-full h-full object-cover" />
+                ) : (
+                  <span>{user?.first_name ? user.first_name[0].toUpperCase() : (user?.username ? user.username[0].toUpperCase() : 'U')}</span>
+                )}
+              </div>
+
+              <div className="text-left leading-tight">
+                <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1">
+                  <span className="truncate max-w-[80px] sm:max-w-[140px]">{user?.username}</span>
+                  <span className="text-[9px] font-mono text-blue-600 dark:text-blue-400 font-extrabold bg-blue-50 dark:bg-blue-500/20 px-1 py-0.5 rounded border border-blue-200 dark:border-blue-500/30 flex-shrink-0">
+                    {user?.employee_id || 'TRA0001'}
+                  </span>
+                </div>
+                <div className="text-[9px] text-slate-500 dark:text-slate-400 font-medium tracking-tight truncate max-w-[110px] hidden sm:block">
+                  {user?.custom_role_details?.name || user?.role}
+                </div>
+              </div>
+            </Link>
+
+            {/* Desktop Header Logout Button */}
             <button
               onClick={() => {
                 dispatch(logout());
                 navigate('/login');
               }}
-              className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 dark:text-red-400 cursor-pointer transition-colors"
+              className="hidden md:flex p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 dark:text-red-400 cursor-pointer transition-colors"
               title="Logout"
             >
               <LogOut className="w-4 h-4" />
@@ -305,12 +259,24 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
               <Layers className="w-5 h-5 text-blue-500" />
               <span>Navigation Menu</span>
             </div>
-            <button
-              onClick={() => setIsSidebarOpen(false)}
-              className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  dispatch(logout());
+                  navigate('/login');
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-bold text-xs border border-red-500/20 shadow-sm cursor-pointer transition-all"
+                title="Logout"
+              >
+                <LogOut className="w-3.5 h-3.5 text-red-500" /> Logout
+              </button>
+              <button
+                onClick={() => setIsSidebarOpen(false)}
+                className="p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
@@ -342,6 +308,25 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
               );
             })}
           </nav>
+
+          {/* Sidebar Footer Logout Button (Mobile Only) */}
+          <div className="md:hidden p-3 border-t border-slate-200 dark:border-slate-800">
+            <button
+              onClick={() => {
+                dispatch(logout());
+                navigate('/login');
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-extrabold text-xs border border-red-500/20 hover:border-red-500/40 shadow-sm transition-all cursor-pointer group"
+              title="Logout Account"
+            >
+              <div className="w-7 h-7 rounded-xl bg-red-500/20 flex items-center justify-center text-red-500 flex-shrink-0 group-hover:scale-110 transition-transform">
+                <LogOut className="w-4 h-4" />
+              </div>
+              <span className={`text-xs font-extrabold ${!isSidebarOpen && 'md:hidden'}`}>
+                Logout System
+              </span>
+            </button>
+          </div>
         </aside>
 
         {/* Content Area */}

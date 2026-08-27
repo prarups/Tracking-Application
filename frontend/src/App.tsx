@@ -12,6 +12,7 @@ import { RolesManagementPage } from './pages/RolesManagementPage';
 import { GroupsManagementPage } from './pages/GroupsManagementPage';
 import { DynamicFormBuilderPage } from './pages/DynamicFormBuilderPage';
 import { AuditLogPage } from './pages/AuditLogPage';
+import { UserProfilePage } from './pages/UserProfilePage';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: string[] }> = ({
   children,
@@ -104,6 +105,15 @@ export const App: React.FC = () => {
           element={
             <ProtectedRoute>
               <AuditLogPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <UserProfilePage />
             </ProtectedRoute>
           }
         />

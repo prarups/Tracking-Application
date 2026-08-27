@@ -1,6 +1,7 @@
 import React from 'react';
 import { Ticket } from '@/types';
 import { useNavigate } from 'react-router-dom';
+import { navigateToTicket } from '@/utils/navigation';
 import { Calendar as CalendarIcon, Clock } from 'lucide-react';
 
 interface Props {
@@ -21,7 +22,7 @@ export const CalendarView: React.FC<Props> = ({ tickets }) => {
         {tickets.map((t) => (
           <div
             key={t.id}
-            onClick={() => navigate(`/tickets/${t.id}`)}
+            onClick={(e) => navigateToTicket(e, t.ticket_number || t.id, navigate)}
             className="p-4 rounded-lg bg-slate-800/80 border border-slate-700 hover:border-blue-500 cursor-pointer transition-all space-y-2"
           >
             <div className="flex items-center justify-between text-xs">

@@ -261,7 +261,7 @@ export const TicketDetailPage: React.FC = () => {
 
       {/* Interactive Edit Form mode */}
       {isEditing ? (
-        <form onSubmit={handleSaveSubmitTicket} className="max-w-4xl mx-auto p-5 rounded-2xl bg-slate-900 border border-blue-500/40 shadow-2xl space-y-3.5 text-xs">
+        <form onSubmit={handleSaveSubmitTicket} className="max-w-4xl mx-auto p-5 rounded-2xl bg-slate-900 border border-blue-500/40 shadow-2xl space-y-3.5 text-xs text-white">
           <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
             <h2 className="text-sm font-bold text-white flex items-center gap-2">
               <Edit3 className="w-4 h-4 text-blue-400" /> Edit Ticket: <span className="font-mono text-blue-400">{ticket.ticket_number}</span>
@@ -369,13 +369,13 @@ export const TicketDetailPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1">Target Due Date (To)</label>
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Target Due Date (To)</label>
               <input
                 type="date"
                 value={editDueDate}
                 onChange={(e) => setEditDueDate(e.target.value)}
                 onClick={(e) => e.currentTarget.showPicker?.()}
-                className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:border-blue-500 focus:outline-none cursor-pointer [color-scheme:dark]"
+                className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none cursor-pointer shadow-sm"
               />
             </div>
           </div>
@@ -393,9 +393,9 @@ export const TicketDetailPage: React.FC = () => {
 
                   return (
                     <div key={cf.id} className="space-y-1">
-                      <label className="block text-xs font-bold text-slate-300">
+                      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
                         {cf.label}{' '}
-                        {cf.is_required && <span className="text-rose-400">*</span>}
+                        {cf.is_required && <span className="text-rose-500">*</span>}
                       </label>
                       {cf.field_type === 'DROPDOWN' || cf.field_type === 'SEARCHABLE_DROPDOWN' || cf.field_type === 'RADIO' ? (
                         <select
@@ -403,11 +403,11 @@ export const TicketDetailPage: React.FC = () => {
                           onChange={(e) =>
                             setEditCustomFieldsData({ ...editCustomFieldsData, [cf.field_key]: e.target.value })
                           }
-                          className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-blue-500 focus:outline-none cursor-pointer"
+                          className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none cursor-pointer shadow-sm"
                         >
                           <option value="">-- Select {cf.label} --</option>
                           {opts.map((opt, i) => (
-                            <option key={i} value={opt} className="bg-slate-900 text-slate-100">
+                            <option key={i} value={opt} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
                               {opt}
                             </option>
                           ))}
@@ -423,9 +423,9 @@ export const TicketDetailPage: React.FC = () => {
                                 [cf.field_key]: e.target.checked ? 'true' : 'false',
                               })
                             }
-                            className="w-4 h-4 rounded bg-slate-900 border-slate-700 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                            className="w-4 h-4 rounded bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-blue-600 focus:ring-blue-500 cursor-pointer"
                           />
-                          <span className="text-xs text-slate-300">Enable / True</span>
+                          <span className="text-xs text-slate-700 dark:text-slate-300">Enable / True</span>
                         </div>
                       ) : cf.field_type === 'NUMBER' ? (
                         <input
@@ -434,7 +434,7 @@ export const TicketDetailPage: React.FC = () => {
                           onChange={(e) =>
                             setEditCustomFieldsData({ ...editCustomFieldsData, [cf.field_key]: e.target.value })
                           }
-                          className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+                          className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none shadow-sm"
                         />
                       ) : cf.field_type === 'DATE' || cf.field_type === 'DATETIME' ? (
                         <input
@@ -443,7 +443,7 @@ export const TicketDetailPage: React.FC = () => {
                           onChange={(e) =>
                             setEditCustomFieldsData({ ...editCustomFieldsData, [cf.field_key]: e.target.value })
                           }
-                          className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-blue-500 focus:outline-none [color-scheme:dark]"
+                          className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none shadow-sm"
                         />
                       ) : cf.field_type === 'TEXTAREA' || cf.field_type === 'RICH_TEXT' ? (
                         <textarea
@@ -452,7 +452,7 @@ export const TicketDetailPage: React.FC = () => {
                           onChange={(e) =>
                             setEditCustomFieldsData({ ...editCustomFieldsData, [cf.field_key]: e.target.value })
                           }
-                          className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+                          className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none shadow-sm"
                         />
                       ) : (
                         <input
@@ -461,7 +461,7 @@ export const TicketDetailPage: React.FC = () => {
                           onChange={(e) =>
                             setEditCustomFieldsData({ ...editCustomFieldsData, [cf.field_key]: e.target.value })
                           }
-                          className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+                          className="w-full bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:border-blue-500 focus:outline-none shadow-sm"
                         />
                       )}
                     </div>
@@ -959,14 +959,46 @@ export const TicketDetailPage: React.FC = () => {
                 </button>
               </div>
 
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-slate-400">Reporter:</span>
-                <span className="text-white font-semibold">{ticket.reporter_details?.username}</span>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-5 h-5 rounded bg-blue-600/30 text-blue-300 font-bold flex items-center justify-center text-[10px] overflow-hidden border border-blue-500/30">
+                    {ticket.reporter_details?.avatar ? (
+                      <img src={ticket.reporter_details.avatar} alt="Reporter DP" className="w-full h-full object-cover" />
+                    ) : (
+                      <span>{ticket.reporter_details?.first_name ? ticket.reporter_details.first_name[0].toUpperCase() : (ticket.reporter_details?.username ? ticket.reporter_details.username[0].toUpperCase() : 'A')}</span>
+                    )}
+                  </div>
+                  <span className="text-white font-semibold text-xs">
+                    {ticket.reporter_details?.first_name ? `${ticket.reporter_details.first_name} ${ticket.reporter_details.last_name || ''}` : ticket.reporter_details?.username}
+                  </span>
+                  <span className="text-[10px] font-mono text-blue-400 font-bold bg-blue-500/10 px-1 py-0.5 rounded border border-blue-500/20">
+                    {ticket.reporter_details?.employee_id || 'TRA0001'}
+                  </span>
+                </div>
               </div>
 
               <div className="flex justify-between items-center">
                 <span className="text-slate-400">Assignee:</span>
-                <span className="text-blue-400 font-semibold">{ticket.assigned_user_details?.username || 'Unassigned'}</span>
+                {ticket.assigned_user_details ? (
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded bg-amber-600/30 text-amber-300 font-bold flex items-center justify-center text-[10px] overflow-hidden border border-amber-500/30">
+                      {ticket.assigned_user_details.avatar ? (
+                        <img src={ticket.assigned_user_details.avatar} alt="Assignee DP" className="w-full h-full object-cover" />
+                      ) : (
+                        <span>{ticket.assigned_user_details.first_name ? ticket.assigned_user_details.first_name[0].toUpperCase() : ticket.assigned_user_details.username[0].toUpperCase()}</span>
+                      )}
+                    </div>
+                    <span className="text-blue-400 font-semibold text-xs">
+                      {ticket.assigned_user_details.first_name ? `${ticket.assigned_user_details.first_name} ${ticket.assigned_user_details.last_name || ''}` : ticket.assigned_user_details.username}
+                    </span>
+                    <span className="text-[10px] font-mono text-blue-400 font-bold bg-blue-500/10 px-1 py-0.5 rounded border border-blue-500/20">
+                      {ticket.assigned_user_details.employee_id || 'TRA0001'}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-slate-500 italic">Unassigned</span>
+                )}
               </div>
 
               <div className="flex justify-between">

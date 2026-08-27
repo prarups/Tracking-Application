@@ -4,6 +4,7 @@ import { RootState } from '@/store';
 import { markRead, markAllRead } from '@/store/slices/notificationSlice';
 import { Bell, CheckCheck, X, Ticket } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { navigateToTicket } from '@/utils/navigation';
 import { axiosClient } from '@/api/axiosClient';
 
 interface Props {
@@ -27,12 +28,12 @@ export const NotificationDrawer: React.FC<Props> = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleItemClick = async (notifId: number, ticketId?: number) => {
+  const handleItemClick = async (e: React.MouseEvent, notifId: number, ticketId?: number, ticketNumber?: string) => {
     try {
       await axiosClient.post(`/notifications/${notifId}/mark-read/`);
       dispatch(markRead(notifId));
-      if (ticketId) {
-        navigate(`/tickets/${ticketId}`);
+      if (ticketId || ticketNumber) {
+        navigateToTicket(e, ticketNumber || ticketId!, navigate);
         onClose();
       }
     } catch (e) {
@@ -90,7 +91,7 @@ export const NotificationDrawer: React.FC<Props> = ({ isOpen, onClose }) => {
             return (
               <div
                 key={n.id}
-                onClick={() => handleItemClick(n.id, n.ticket)}
+                onClick={(e) => handleItemClick(e, n.id, n.ticket, n.ticket_number)}
                 className={`p-3 rounded-xl border transition-all cursor-pointer space-y-1.5 ${
                   !n.is_read
                     ? 'bg-blue-950/40 border-blue-500/40 hover:bg-blue-900/40 shadow-md'

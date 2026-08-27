@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { navigateToTicket } from '@/utils/navigation';
 import { RootState } from '@/store';
 import { setViewMode, setStatusFilter, setPriorityFilter } from '@/store/slices/filterSlice';
 import { axiosClient } from '@/api/axiosClient';
@@ -22,8 +23,11 @@ import {
   AlertCircle,
   Clock,
   Paperclip,
-  Upload,
+  Trash2,
   FileText,
+  Building2,
+  Layers,
+  Upload,
   Image as ImageIcon,
   CheckCircle,
   Search,
@@ -352,7 +356,18 @@ export const TicketsPage: React.FC = () => {
             <ArrowLeft className="w-4 h-4 text-blue-600 dark:text-blue-400" /> Back to Department Groups
           </button>
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Ticket Management Engine</h1>
+            <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+              <span>Ticket Management Engine</span>
+            </h1>
+
+            {/* Selected Department Group Badge */}
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-indigo-500/10 to-purple-500/10 text-indigo-700 dark:text-indigo-300 font-extrabold text-xs border border-indigo-500/30 shadow-sm">
+              <Layers className="w-4 h-4 text-indigo-500" />
+              <span>{activeGroupDetails ? activeGroupDetails.name : selectedGroup ? selectedGroup.name : 'All Department Groups'}</span>
+              <span className="font-mono text-[10px] bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 px-1.5 py-0.5 rounded">
+                {activeGroupDetails ? activeGroupDetails.code : selectedGroup ? selectedGroup.code : 'ALL'}
+              </span>
+            </span>
 
             {/* Live Status Summary Badges in Header */}
             <div className="flex items-center gap-1.5 flex-wrap">
@@ -531,7 +546,7 @@ export const TicketsPage: React.FC = () => {
           </select>
 
           {/* Creation Date Range Filters */}
-          <div className="flex items-center gap-2 bg-white dark:bg-slate-950/80 border border-slate-300 dark:border-slate-800/80 px-2.5 py-1 rounded-xl shadow-sm">
+          <div className="flex flex-wrap items-center gap-2 bg-white dark:bg-slate-950/80 border border-slate-300 dark:border-slate-800/80 px-2.5 py-1 rounded-xl shadow-sm max-w-full">
             <CalendarIcon className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
             <span className="text-[11px] text-slate-600 dark:text-slate-400 font-semibold">Created:</span>
             <input
@@ -848,8 +863,9 @@ export const TicketsPage: React.FC = () => {
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => navigate(`/tickets/${quickViewTicket.ticket_number || quickViewTicket.id}`)}
+                  onClick={(e) => navigateToTicket(e, quickViewTicket.ticket_number || quickViewTicket.id, navigate)}
                   className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+                  title="Click to view (Ctrl+Click to open in new tab)"
                 >
                   Edit / Full Page
                 </button>

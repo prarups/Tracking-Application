@@ -45,6 +45,15 @@ class Ticket(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['assigned_group', 'status']),
+            models.Index(fields=['assigned_user', 'status']),
+            models.Index(fields=['reporter', 'status']),
+            models.Index(fields=['created_at', 'priority']),
+        ]
+
     def save(self, *args, **kwargs):
         if not self.ticket_number:
             prefix = self.assigned_group.code if self.assigned_group else (self.project.key if self.project else 'TR0001')

@@ -2,6 +2,7 @@ import React from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { Ticket, TicketStatus } from '@/types';
 import { useNavigate } from 'react-router-dom';
+import { navigateToTicket } from '@/utils/navigation';
 import { MessageSquare, Paperclip, User } from 'lucide-react';
 import { axiosClient } from '@/api/axiosClient';
 
@@ -72,7 +73,7 @@ export const KanbanBoard: React.FC<Props> = ({ tickets, onTicketUpdate }) => {
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
-                            onClick={() => navigate(`/tickets/${ticket.id}`)}
+                            onClick={(e) => navigateToTicket(e, ticket.ticket_number || ticket.id, navigate)}
                             className={`p-3 rounded-lg bg-slate-800 border border-slate-700/80 hover:border-blue-500/50 shadow-md cursor-pointer transition-all ${
                               snapshot.isDragging ? 'shadow-2xl ring-2 ring-blue-500' : ''
                             }`}

@@ -60,31 +60,7 @@ class CustomTokenObtainPairView(APIView):
                 LoginHistory.objects.create(user=target_user, ip_address=ip, user_agent=user_agent, is_successful=False)
             return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
-@extend_schema(request=serializers.Serializer, responses={200: serializers.Serializer})
-class ForgotPasswordView(APIView):
-    permission_classes = [permissions.AllowAny]
 
-    def post(self, request):
-        identifier = request.data.get('identifier', '').strip()
-        if not identifier:
-            return Response({'detail': 'Please enter your username, employee ID, or email address.'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        user = User.objects.filter(
-            Q(username__iexact=identifier) |
-            Q(email__iexact=identifier) |
-            Q(employee_id__iexact=identifier)
-        ).first()
-        if not user:
-            return Response({'detail': 'No registered account found matching this username, employee ID, or email.'}, status=status.HTTP_404_NOT_FOUND)
-        
-        temp_pass = f"Pass@{user.username}123"
-        user.set_password(temp_pass)
-        user.save()
-        return Response({
-            'detail': f"Password recovery successful! Temporary password generated for @{user.username}",
-            'temporary_password': temp_pass,
-            'username': user.username
-        })
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer

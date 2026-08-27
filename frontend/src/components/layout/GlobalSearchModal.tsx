@@ -6,6 +6,7 @@ import { axiosClient } from '@/api/axiosClient';
 import { GlobalSearchResult } from '@/types';
 import { Search, X, Ticket, MessageSquare, Users, Folder, LayoutGrid } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { navigateToTicket } from '@/utils/navigation';
 
 export const GlobalSearchModal: React.FC = () => {
   const dispatch = useDispatch();
@@ -96,8 +97,8 @@ export const GlobalSearchModal: React.FC = () => {
                     {results.tickets.map((t) => (
                       <div
                         key={t.id}
-                        onClick={() => {
-                          navigate(`/tickets/${t.id}`);
+                        onClick={(e) => {
+                          navigateToTicket(e, t.ticket_number || t.id, navigate);
                           dispatch(setIsSearchModalOpen(false));
                         }}
                         className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800/60 hover:bg-blue-600/20 hover:border-blue-500/40 border border-transparent cursor-pointer transition-all"
@@ -128,8 +129,8 @@ export const GlobalSearchModal: React.FC = () => {
                     {results.comments.map((c) => (
                       <div
                         key={c.id}
-                        onClick={() => {
-                          navigate(`/tickets/${c.ticket_id}`);
+                        onClick={(e) => {
+                          navigateToTicket(e, c.ticket_number || c.ticket_id, navigate);
                           dispatch(setIsSearchModalOpen(false));
                         }}
                         className="p-2.5 rounded-lg bg-slate-800/40 hover:bg-slate-800 cursor-pointer"

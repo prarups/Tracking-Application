@@ -37,6 +37,8 @@ import {
   Area,
 } from 'recharts';
 
+import * as XLSX from 'xlsx';
+
 export const DashboardPage: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -50,6 +52,36 @@ export const DashboardPage: React.FC = () => {
   const [groupSearch, setGroupSearch] = useState('');
   const [groupPage, setGroupPage] = useState(1);
   const GROUPS_PER_PAGE = 6;
+
+  const handleExportExecutiveReport = () => {
+    const reportData = displayedTickets.map((t) => ({
+      'Ticket Number': t.ticket_number,
+      'Title': t.title,
+      'Priority': t.priority,
+      'Status': t.status,
+      'Department Group': (t.assigned_group_details as any)?.name || t.assigned_group || 'Unassigned',
+      'Group Code': (t.assigned_group_details as any)?.code || 'N/A',
+      'Assignee': t.assigned_user_details
+        ? `${t.assigned_user_details.first_name || ''} ${t.assigned_user_details.last_name || ''}`.trim() || t.assigned_user_details.username
+        : 'Unassigned',
+      'Reporter': t.reporter_details
+        ? `${t.reporter_details.first_name || ''} ${t.reporter_details.last_name || ''}`.trim() || t.reporter_details.username
+        : 'System',
+      'Story Points': t.story_points || 0,
+      'Created At': t.created_at ? new Date(t.created_at).toLocaleString() : '',
+      'Updated At': t.updated_at ? new Date(t.updated_at).toLocaleString() : '',
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(reportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Executive Report');
+
+    const selectedGroupObj = groups.find((g) => String(g.id) === dashboardScopeGroup);
+    const groupName = selectedGroupObj ? selectedGroupObj.code || selectedGroupObj.name.replace(/[^a-zA-Z0-9]/g, '_') : 'All_Groups';
+    const fileName = `Executive_Report_${groupName}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+    XLSX.writeFile(workbook, fileName);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -145,7 +177,7 @@ export const DashboardPage: React.FC = () => {
             </div>
 
             <button
-              onClick={() => alert(`Executive report generated for ${dashboardScopeGroup ? 'selected group' : 'All Department Groups'}!`)}
+              onClick={handleExportExecutiveReport}
               className="flex items-center gap-2 bg-white text-blue-900 hover:bg-blue-50 dark:bg-gradient-to-r dark:from-blue-600 dark:to-indigo-600 dark:hover:from-blue-500 dark:hover:to-indigo-500 dark:text-white px-4 py-2.5 rounded-xl text-xs font-extrabold shadow-lg transition-all hover:scale-105 cursor-pointer"
             >
               <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-300" /> Export Executive PDF/Excel
