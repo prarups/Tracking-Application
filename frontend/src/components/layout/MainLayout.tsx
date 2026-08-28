@@ -200,9 +200,9 @@ export const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }
               title="View & Edit My DP Profile"
             >
               {/* Dynamic DP Avatar */}
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 border border-blue-400/30 overflow-hidden flex items-center justify-center font-bold text-xs text-white shadow-sm flex-shrink-0 group-hover:scale-105 transition-transform">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 border border-blue-400/30 overflow-hidden flex items-center justify-center font-bold text-xs text-white shadow-sm flex-shrink-0 group-hover:scale-105 transition-transform">
                 {user?.avatar ? (
-                  <img src={user.avatar} alt={user.username} className="w-full h-full object-cover" />
+                  <img src={user.avatar} alt={user.username} className="w-full h-full object-cover rounded-full" />
                 ) : (
                   <span>{user?.first_name ? user.first_name[0].toUpperCase() : (user?.username ? user.username[0].toUpperCase() : 'U')}</span>
                 )}

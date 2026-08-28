@@ -13,7 +13,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         fields = ['id', 'key', 'name', 'description', 'group', 'group_details', 'lead', 'lead_details', 'is_active', 'created_at']
 
 class ProjectViewSet(viewsets.ModelViewSet):
-    queryset = Project.objects.all().order_by('-created_at')
+    queryset = Project.objects.all().select_related('group', 'lead').order_by('-created_at')
     serializer_class = ProjectSerializer
     permission_classes = [permissions.IsAuthenticated]
 

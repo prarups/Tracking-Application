@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { navigateToTicket } from '@/utils/navigation';
 import { RootState } from '@/store';
 import { setViewMode, setStatusFilter, setPriorityFilter } from '@/store/slices/filterSlice';
+import { setSelectedGroup } from '@/store/slices/authSlice';
 import { axiosClient } from '@/api/axiosClient';
 import { Ticket, CustomField, Project, User, Group } from '@/types';
 import { TicketAgGridTable } from '@/components/views/TicketAgGridTable';
@@ -11,7 +12,8 @@ import { KanbanBoard } from '@/components/views/KanbanBoard';
 import { CalendarView } from '@/components/views/CalendarView';
 import { TimelineView } from '@/components/views/TimelineView';
 import { DynamicFormRenderer } from '@/components/forms/DynamicFormRenderer';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
+import { AssigneePicker } from '@/components/forms/AssigneePicker';
 import {
   Plus,
   LayoutList,
@@ -19,6 +21,8 @@ import {
   Calendar as CalendarIcon,
   GitCommit,
   Filter,
+  RotateCcw,
+  ChevronDown,
   X,
   AlertCircle,
   Clock,
@@ -57,7 +61,7 @@ export const TicketsPage: React.FC = () => {
   const [createFormError, setCreateFormError] = useState('');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
-  const { register, handleSubmit, reset, control, formState: { errors } } = useForm();
+  const { register, handleSubmit, reset, watch, control, formState: { errors } } = useForm();
 
   const [activeGroupDetails, setActiveGroupDetails] = useState<Group | null>(null);
 
@@ -119,7 +123,8 @@ export const TicketsPage: React.FC = () => {
         ]);
         setCustomFields(fRes.data.results || fRes.data);
         setProjects(pRes.data.results || pRes.data);
-        setUsers(uRes.data.results || uRes.data);
+        const uList = Array.isArray(uRes.data) ? uRes.data : (uRes.data.results || []);
+        setUsers(uList);
       } catch (e) {
         console.error(e);
       }
@@ -208,49 +213,53 @@ export const TicketsPage: React.FC = () => {
     }
   };
 
-  const filteredTickets = tickets.filter((t) => {
-    // Search key filter
-    if (searchKey.trim()) {
-      const query = searchKey.trim().toLowerCase();
-      const matchesKey = t.ticket_number?.toLowerCase().includes(query);
-      const matchesTitle = t.title?.toLowerCase().includes(query);
-      const matchesAssignee = t.assigned_user_details?.username?.toLowerCase().includes(query);
-      const matchesReporter = t.reporter_details?.username?.toLowerCase().includes(query);
-      if (!matchesKey && !matchesTitle && !matchesAssignee && !matchesReporter) return false;
-    }
 
-    // Assignee Filter
-    if (assigneeFilter) {
-      if (assigneeFilter === 'UNASSIGNED') {
-        if (t.assigned_user) return false;
-      } else if (String(t.assigned_user) !== assigneeFilter) {
-        return false;
+
+  const filteredTickets = useMemo(() => {
+    return tickets.filter((t) => {
+      // Search key filter
+      if (searchKey.trim()) {
+        const query = searchKey.trim().toLowerCase();
+        const matchesKey = t.ticket_number?.toLowerCase().includes(query);
+        const matchesTitle = t.title?.toLowerCase().includes(query);
+        const matchesAssignee = t.assigned_user_details?.username?.toLowerCase().includes(query);
+        const matchesReporter = t.reporter_details?.username?.toLowerCase().includes(query);
+        if (!matchesKey && !matchesTitle && !matchesAssignee && !matchesReporter) return false;
       }
-    }
 
-    // Created By Filter
-    if (createdByFilter) {
-      if (String(t.reporter) !== createdByFilter) return false;
-    }
+      // Assignee Filter
+      if (assigneeFilter) {
+        if (assigneeFilter === 'UNASSIGNED') {
+          if (t.assigned_user) return false;
+        } else if (String(t.assigned_user) !== assigneeFilter) {
+          return false;
+        }
+      }
 
-    // Created From Date filter
-    if (createdFromDate) {
-      const ticketDate = new Date(t.created_at);
-      const fromDate = new Date(createdFromDate);
-      fromDate.setHours(0, 0, 0, 0);
-      if (ticketDate < fromDate) return false;
-    }
+      // Created By Filter
+      if (createdByFilter) {
+        if (String(t.reporter) !== createdByFilter) return false;
+      }
 
-    // Created To Date filter
-    if (createdToDate) {
-      const ticketDate = new Date(t.created_at);
-      const toDate = new Date(createdToDate);
-      toDate.setHours(23, 59, 59, 999);
-      if (ticketDate > toDate) return false;
-    }
+      // Created From Date filter
+      if (createdFromDate) {
+        const ticketDate = new Date(t.created_at);
+        const fromDate = new Date(createdFromDate);
+        fromDate.setHours(0, 0, 0, 0);
+        if (ticketDate < fromDate) return false;
+      }
 
-    return true;
-  });
+      // Created To Date filter
+      if (createdToDate) {
+        const ticketDate = new Date(t.created_at);
+        const toDate = new Date(createdToDate);
+        toDate.setHours(23, 59, 59, 999);
+        if (ticketDate > toDate) return false;
+      }
+
+      return true;
+    });
+  }, [tickets, searchKey, assigneeFilter, createdByFilter, createdFromDate, createdToDate]);
 
   const handleExportCSV = () => {
     if (!filteredTickets || filteredTickets.length === 0) return;
@@ -699,42 +708,19 @@ export const TicketsPage: React.FC = () => {
 
                 <div className="relative">
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Assignee</label>
-                  <select
-                    {...register('assigned_user')}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white truncate focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer"
-                  >
-                    <option value="" className="bg-slate-900 text-slate-400">Unassigned</option>
-                    {(() => {
-                      const currentGrp = activeGroupDetails || selectedGroup;
-                      const groupMembers = (currentGrp as any)?.members_details || [];
-
-                      if (currentGrp) {
-                        const assignableUsers = users.filter((u) =>
-                          groupMembers.some((m: any) => m.id === u.id)
-                        );
-
-                        if (assignableUsers.length === 0) {
-                          return (
-                            <option value="" disabled className="bg-slate-900 text-amber-400 font-semibold">
-                              No users assigned rights to {currentGrp.code} yet
-                            </option>
-                          );
-                        }
-
-                        return assignableUsers.map((u) => (
-                          <option key={u.id} value={u.id} className="bg-slate-900 text-slate-100 py-1.5 px-3">
-                            {u.username} ({u.role})
-                          </option>
-                        ));
-                      }
-
-                      return users.map((u) => (
-                        <option key={u.id} value={u.id} className="bg-slate-900 text-slate-100 py-1.5 px-3">
-                          {u.username} ({u.role})
-                        </option>
-                      ));
-                    })()}
-                  </select>
+                  <Controller
+                    name="assigned_user"
+                    control={control}
+                    defaultValue=""
+                    render={({ field }) => (
+                      <AssigneePicker
+                        users={users}
+                        value={field.value}
+                        onChange={(uId) => field.onChange(uId)}
+                        assignedGroupDetails={activeGroupDetails || selectedGroup}
+                      />
+                    )}
+                  />
                 </div>
               </div>
 

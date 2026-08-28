@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { axiosClient } from '@/api/axiosClient';
@@ -103,34 +103,36 @@ export const DashboardPage: React.FC = () => {
   }, []);
 
   // Filter tickets based on selected dashboard scope
-  const displayedTickets = dashboardScopeGroup
-    ? tickets.filter(
-        (t) =>
-          String(t.assigned_group) === dashboardScopeGroup ||
-          String(t.assigned_group_details?.id) === dashboardScopeGroup ||
-          t.assigned_group_details?.name === dashboardScopeGroup
-      )
-    : tickets;
+  const displayedTickets = useMemo(() => {
+    return dashboardScopeGroup
+      ? tickets.filter(
+          (t) =>
+            String(t.assigned_group) === dashboardScopeGroup ||
+            String(t.assigned_group_details?.id) === dashboardScopeGroup ||
+            t.assigned_group_details?.name === dashboardScopeGroup
+        )
+      : tickets;
+  }, [tickets, dashboardScopeGroup]);
 
   // Metrics computed from displayedScope
   const totalCount = displayedTickets.length;
-  const openCount = displayedTickets.filter((t) => t.status !== 'DONE' && t.status !== 'CLOSED').length;
-  const closedCount = displayedTickets.filter((t) => t.status === 'DONE' || t.status === 'CLOSED').length;
-  const urgentCount = displayedTickets.filter((t) => t.priority === 'CRITICAL' || t.priority === 'URGENT').length;
+  const openCount = useMemo(() => displayedTickets.filter((t) => t.status !== 'DONE' && t.status !== 'CLOSED').length, [displayedTickets]);
+  const closedCount = useMemo(() => displayedTickets.filter((t) => t.status === 'DONE' || t.status === 'CLOSED').length, [displayedTickets]);
+  const urgentCount = useMemo(() => displayedTickets.filter((t) => t.priority === 'CRITICAL' || t.priority === 'URGENT').length, [displayedTickets]);
 
-  const statusData = [
+  const statusData = useMemo(() => [
     { name: 'To Do', count: displayedTickets.filter((t) => t.status === 'TODO' || t.status === 'BACKLOG' || t.status === 'OPEN').length, color: '#3B82F6' },
     { name: 'In Progress', count: displayedTickets.filter((t) => t.status === 'IN_PROGRESS').length, color: '#F59E0B' },
     { name: 'In Review', count: displayedTickets.filter((t) => t.status === 'IN_REVIEW' || t.status === 'REOPEN').length, color: '#8B5CF6' },
     { name: 'Done', count: displayedTickets.filter((t) => t.status === 'DONE' || t.status === 'CLOSED').length, color: '#10B981' },
-  ];
+  ], [displayedTickets]);
 
-  const priorityData = [
+  const priorityData = useMemo(() => [
     { name: 'Low', value: displayedTickets.filter((t) => t.priority === 'LOW').length, color: '#3B82F6' },
     { name: 'Medium', value: displayedTickets.filter((t) => t.priority === 'MEDIUM').length, color: '#F59E0B' },
     { name: 'High', value: displayedTickets.filter((t) => t.priority === 'HIGH').length, color: '#F97316' },
     { name: 'Critical', value: displayedTickets.filter((t) => t.priority === 'CRITICAL' || t.priority === 'URGENT').length, color: '#EF4444' },
-  ];
+  ], [displayedTickets]);
 
   const trendData = [
     { month: 'Jan', tickets: 12, resolved: 10 },

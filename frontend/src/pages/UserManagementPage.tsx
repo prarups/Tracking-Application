@@ -22,6 +22,9 @@ import {
   Sparkles,
   Eye,
   EyeOff,
+  Download,
+  Upload,
+  FileSpreadsheet,
 } from 'lucide-react';
 
 export const UserManagementPage: React.FC = () => {
@@ -273,6 +276,141 @@ export const UserManagementPage: React.FC = () => {
   const onlineCount = users.filter(isUserOnline).length;
   const offlineCount = users.length - onlineCount;
 
+  // CSV Status Notification
+  const [csvStatus, setCsvStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // CSV Export Handler
+  const handleExportCSV = () => {
+    const headers = [
+      'Employee ID',
+      'Username',
+      'First Name',
+      'Last Name',
+      'Email',
+      'System Role',
+      'Custom Role',
+      'Account Status',
+      'Online Status',
+      'Date Joined',
+    ];
+
+    const rows = filteredUsers.map((u) => [
+      `"${(u.employee_id || 'TRA0001').replace(/"/g, '""')}"`,
+      `"${(u.username || '').replace(/"/g, '""')}"`,
+      `"${(u.first_name || '').replace(/"/g, '""')}"`,
+      `"${(u.last_name || '').replace(/"/g, '""')}"`,
+      `"${(u.email || '').replace(/"/g, '""')}"`,
+      `"${(u.role || '').replace(/"/g, '""')}"`,
+      `"${(u.custom_role_details?.name || '').replace(/"/g, '""')}"`,
+      `"${u.is_active ? 'Active (ON)' : 'Blocked (OFF)'}"`,
+      `"${isUserOnline(u) ? 'Online' : 'Offline'}"`,
+      `"${new Date(u.date_joined).toLocaleDateString()}"`,
+    ]);
+
+    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `Users_Access_Export_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    setCsvStatus({ type: 'success', message: `Exported ${filteredUsers.length} user record(s) to CSV!` });
+    setTimeout(() => setCsvStatus(null), 5000);
+  };
+
+  // Sample CSV Template Downloader
+  const handleDownloadSampleCSV = () => {
+    const sampleCSV = `Username,Email,Password,First Name,Last Name,Role
+john_dev,john@enterprise.com,UserPass123!,John,Dev,EMPLOYEE
+sarah_admin,sarah@enterprise.com,UserPass123!,Sarah,Admin,ADMIN`;
+
+    const blob = new Blob([sampleCSV], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'Users_Import_Template.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // CSV Import Handler
+  const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !e.target.files[0]) return;
+    const file = e.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = async (evt) => {
+      const text = evt.target?.result as string;
+      if (!text) return;
+
+      const lines = text.split(/\r\n|\n/).filter((l) => l.trim() !== '');
+      if (lines.length <= 1) {
+        setCsvStatus({ type: 'error', message: 'CSV file is empty or missing data rows.' });
+        return;
+      }
+
+      const headers = lines[0].split(',').map((h) => h.trim().replace(/^"|"$/g, '').toLowerCase());
+      let successCount = 0;
+      let failCount = 0;
+      const errorLogs: string[] = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        const row = lines[i].split(',').map((val) => val.trim().replace(/^"|"$/g, ''));
+        if (row.length === 0 || !row[0]) continue;
+
+        const rowData: Record<string, string> = {};
+        headers.forEach((h, idx) => {
+          rowData[h] = row[idx] || '';
+        });
+
+        const uname = rowData['username'] || row[0];
+        const uemail = rowData['email'] || row[1] || `${uname}@enterprise.com`;
+        const upass = rowData['password'] || row[2] || 'UserPass123!';
+        const ufirst = rowData['first name'] || rowData['first_name'] || row[3] || uname;
+        const ulast = rowData['last name'] || rowData['last_name'] || row[4] || '';
+        const uroleRaw = (rowData['role'] || rowData['system role'] || row[5] || 'EMPLOYEE').toUpperCase();
+        const urole = ['SUPER_ADMIN', 'ADMIN', 'EMPLOYEE'].includes(uroleRaw) ? uroleRaw : 'EMPLOYEE';
+
+        try {
+          await axiosClient.post('/auth/users/create/', {
+            username: uname,
+            email: uemail,
+            password: upass,
+            first_name: ufirst,
+            last_name: ulast,
+            role: urole,
+          });
+          successCount++;
+        } catch (err: any) {
+          failCount++;
+          const msg = err.response?.data?.detail || err.response?.data?.username?.[0] || 'User creation failed';
+          errorLogs.push(`${uname}: ${msg}`);
+        }
+      }
+
+      fetchUsersAndGroups();
+      e.target.value = '';
+
+      if (successCount > 0) {
+        setCsvStatus({
+          type: 'success',
+          message: `CSV Import Complete! Successfully added ${successCount} user account(s).` + (failCount > 0 ? ` Failed: ${failCount}` : ''),
+        });
+      } else {
+        setCsvStatus({
+          type: 'error',
+          message: `CSV Import Failed for ${failCount} row(s). ${errorLogs.slice(0, 2).join('; ')}`,
+        });
+      }
+    };
+
+    reader.readAsText(file);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -299,6 +437,40 @@ export const UserManagementPage: React.FC = () => {
             <span className="text-slate-600 dark:text-slate-400 font-mono">{offlineCount} Offline</span>
           </div>
 
+          {/* Export CSV Button */}
+          <button
+            type="button"
+            onClick={handleExportCSV}
+            title="Export current user list to CSV file"
+            className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 transition-all hover:scale-105 cursor-pointer"
+          >
+            <Download className="w-4 h-4" /> Export CSV
+          </button>
+
+          {/* Import CSV Button */}
+          <label
+            title="Upload CSV file to bulk import user accounts"
+            className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 px-3.5 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 transition-all hover:scale-105 cursor-pointer"
+          >
+            <Upload className="w-4 h-4 text-blue-600 dark:text-blue-400" /> Import CSV
+            <input
+              type="file"
+              accept=".csv"
+              onChange={handleImportCSV}
+              className="hidden"
+            />
+          </label>
+
+          {/* Sample CSV Template Link */}
+          <button
+            type="button"
+            onClick={handleDownloadSampleCSV}
+            title="Download CSV import sample template"
+            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+          </button>
+
           <button
             type="button"
             onClick={() => {
@@ -311,6 +483,25 @@ export const UserManagementPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* CSV Status Alert Banner */}
+      {csvStatus && (
+        <div
+          className={`p-3.5 rounded-2xl text-xs font-bold flex items-center justify-between gap-2 animate-in fade-in ${
+            csvStatus.type === 'success'
+              ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+              : 'bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {csvStatus.type === 'success' ? <CheckCircle className="w-4 h-4 flex-shrink-0" /> : <AlertCircle className="w-4 h-4 flex-shrink-0" />}
+            <span>{csvStatus.message}</span>
+          </div>
+          <button onClick={() => setCsvStatus(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Quick Filters Bar */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white/80 dark:bg-slate-900/60 backdrop-blur-md p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs shadow-sm">

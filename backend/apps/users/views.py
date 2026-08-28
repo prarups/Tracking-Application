@@ -12,6 +12,8 @@ from .permissions import IsAdminOrManager, IsSuperAdmin
 from apps.groups_app.models import Group, GroupMember, GroupMemberRole
 from apps.groups_app.serializers import GroupSerializer
 
+from apps.audit_logs.utils import get_client_ip
+
 from django.db.models import Q
 
 @extend_schema(request=serializers.Serializer, responses={200: serializers.Serializer})
@@ -35,7 +37,7 @@ class CustomTokenObtainPairView(APIView):
         else:
             user = authenticate(username=username_input, password=password)
         
-        ip = request.META.get('REMOTE_ADDR', '127.0.0.1')
+        ip = get_client_ip(request)
         user_agent = request.META.get('HTTP_USER_AGENT', '')
 
         if target_user and not target_user.is_active:

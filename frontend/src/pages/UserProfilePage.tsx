@@ -103,15 +103,15 @@ export const UserProfilePage: React.FC = () => {
         {/* Left Column: Avatar DP Card */}
         <div className="glass-card p-6 rounded-3xl shadow-md border border-slate-200 dark:border-slate-800 space-y-5 text-center flex flex-col items-center">
           <div className="relative group">
-            <div className="w-28 h-28 rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-600 border-2 border-blue-400/40 p-1 shadow-xl overflow-hidden flex items-center justify-center">
+            <div className="w-28 h-28 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 border-4 border-white dark:border-slate-800 shadow-xl overflow-hidden flex items-center justify-center ring-4 ring-blue-500/20">
               {avatarPreview ? (
                 <img
                   src={avatarPreview}
                   alt={currentUser.username}
-                  className="w-full h-full object-cover rounded-[20px]"
+                  className="w-full h-full object-cover rounded-full"
                 />
               ) : (
-                <div className="w-full h-full bg-slate-950 rounded-[20px] flex items-center justify-center font-bold text-3xl text-white">
+                <div className="w-full h-full bg-slate-950 rounded-full flex items-center justify-center font-bold text-3xl text-white">
                   {currentUser.first_name ? currentUser.first_name[0].toUpperCase() : currentUser.username[0].toUpperCase()}
                 </div>
               )}
@@ -120,7 +120,7 @@ export const UserProfilePage: React.FC = () => {
             {/* Custom DP Upload File Trigger overlay */}
             <label
               htmlFor="avatar-upload-input"
-              className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-xl shadow-lg border border-white dark:border-slate-900 cursor-pointer transition-all hover:scale-110"
+              className="absolute bottom-0 right-0 bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-full shadow-lg border-2 border-white dark:border-slate-900 cursor-pointer transition-all hover:scale-110"
               title="Upload new Display Picture (DP)"
             >
               <Camera className="w-4 h-4" />

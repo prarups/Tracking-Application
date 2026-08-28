@@ -20,6 +20,7 @@ import {
   Copy,
   Check,
 } from 'lucide-react';
+import { AssigneePicker } from '@/components/forms/AssigneePicker';
 
 export const TicketDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -119,9 +120,6 @@ export const TicketDetailPage: React.FC = () => {
 
       const aRes = await axiosClient.get(`/audit-logs/?ticket_id=${id}`);
       setActivities(aRes.data.results || aRes.data);
-
-      const uRes = await axiosClient.get('/auth/users/');
-      setUsers(uRes.data.results || uRes.data);
     } catch (e) {
       console.error(e);
     }
@@ -130,6 +128,39 @@ export const TicketDetailPage: React.FC = () => {
   useEffect(() => {
     fetchTicketData();
   }, [id]);
+
+  useEffect(() => {
+    const fetchUsersList = async () => {
+      try {
+        const uRes = await axiosClient.get('/auth/users/');
+        const uData = Array.isArray(uRes.data) ? uRes.data : (uRes.data.results || []);
+        setUsers(uData);
+      } catch (e) {
+        console.error('Failed to load users:', e);
+      }
+    };
+    fetchUsersList();
+  }, []);
+
+  const allAvailableUsers = React.useMemo(() => {
+    const map = new Map<number, User>();
+    if (Array.isArray(users)) {
+      users.forEach((u) => { if (u && u.id) map.set(u.id, u); });
+    }
+    if (ticket?.assigned_user_details?.id) {
+      map.set(ticket.assigned_user_details.id, ticket.assigned_user_details);
+    }
+    if (ticket?.reporter_details?.id) {
+      map.set(ticket.reporter_details.id, ticket.reporter_details);
+    }
+    const grpMembers = (ticket?.assigned_group_details as any)?.members_details || [];
+    if (Array.isArray(grpMembers)) {
+      grpMembers.forEach((m: any) => {
+        if (m && m.id) map.set(m.id, m);
+      });
+    }
+    return Array.from(map.values());
+  }, [users, ticket]);
 
   const handleSaveSubmitTicket = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -326,33 +357,12 @@ export const TicketDetailPage: React.FC = () => {
 
             <div>
               <label className="block text-xs font-bold text-slate-300 mb-1">Assignee</label>
-              <select
+              <AssigneePicker
+                users={allAvailableUsers}
                 value={editAssignee}
-                onChange={(e) => setEditAssignee(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-blue-500 focus:outline-none cursor-pointer"
-              >
-                <option value="" className="bg-slate-900 text-slate-400">Unassigned</option>
-                {(() => {
-                  const grpMembers = (ticket.assigned_group_details as any)?.members_details || [];
-                  const assignable = grpMembers.length > 0
-                    ? users.filter((u) => grpMembers.some((m: any) => m.id === u.id))
-                    : [];
-
-                  if (grpMembers.length === 0) {
-                    return (
-                      <option value="" disabled className="bg-slate-900 text-amber-400">
-                        No users assigned rights to this department yet
-                      </option>
-                    );
-                  }
-
-                  return assignable.map((u) => (
-                    <option key={u.id} value={u.id} className="bg-slate-900 text-slate-100">
-                      {u.username} ({u.role})
-                    </option>
-                  ));
-                })()}
-              </select>
+                onChange={(uId) => setEditAssignee(uId)}
+                assignedGroupDetails={ticket?.assigned_group_details}
+              />
             </div>
           </div>
 
@@ -1052,7 +1062,12 @@ export const TicketDetailPage: React.FC = () => {
                         {a.field_name}: {a.old_value} &rarr; {a.new_value}
                       </div>
                     )}
-                    <div className="text-[9px] text-slate-500 mt-1">{new Date(a.timestamp).toLocaleTimeString()}</div>
+                    <div className="text-[9px] text-slate-500 mt-1 flex items-center justify-between">
+                      <span>{new Date(a.timestamp).toLocaleTimeString()}</span>
+                      <span className="font-mono text-[9px] text-purple-400 bg-purple-500/10 px-1 py-0.2 rounded border border-purple-500/20">
+                        IP: {a.ip_address || '127.0.0.1'}
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>

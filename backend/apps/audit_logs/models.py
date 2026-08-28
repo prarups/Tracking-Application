@@ -15,6 +15,10 @@ class ActivityLog(models.Model):
 
     class Meta:
         ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['ticket', '-timestamp']),
+            models.Index(fields=['actor', '-timestamp']),
+        ]
 
     def __str__(self):
         return f"{self.actor.username} {self.action_type} on {self.timestamp}"
