@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { setCredentials, setSelectedGroup } from '@/store/slices/authSlice';
@@ -15,12 +15,20 @@ export const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    // Purge any stale tokens from previous sessions to prevent token_not_valid errors
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
       const res = await axiosClient.post('/auth/login/', { username, password });
       dispatch(setCredentials({
         user: res.data.user,
@@ -28,9 +36,14 @@ export const LoginPage: React.FC = () => {
         refresh: res.data.refresh,
       }));
 
-      const groupsRes = await axiosClient.get('/groups/');
-      if (groupsRes.data.length > 0) {
-        dispatch(setSelectedGroup(groupsRes.data[0]));
+      try {
+        const groupsRes = await axiosClient.get('/groups/');
+        const groupList = groupsRes.data?.results || groupsRes.data;
+        if (Array.isArray(groupList) && groupList.length > 0) {
+          dispatch(setSelectedGroup(groupList[0]));
+        }
+      } catch (groupErr) {
+        console.warn('No initial group loaded', groupErr);
       }
 
       navigate('/dashboard');

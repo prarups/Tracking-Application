@@ -4,11 +4,22 @@ from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Load .env file if present
+_env_file = BASE_DIR / '.env'
+if _env_file.exists():
+    with open(_env_file, 'r', encoding='utf-8') as _f:
+        for _line in _f:
+            _line = _line.strip()
+            if _line and not _line.startswith('#') and '=' in _line:
+                _k, _v = _line.split('=', 1)
+                os.environ.setdefault(_k.strip(), _v.strip())
+
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-enterprise-tracking-secret-key-2026-hyper-secure')
 
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = ['*']
+_allowed_hosts = os.environ.get('ALLOWED_HOSTS', '*')
+ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts.split(',') if h.strip()] if _allowed_hosts else ['*']
 
 INSTALLED_APPS = [
     'daphne',
@@ -73,14 +84,15 @@ TEMPLATES = [
 WSGI_APPLICATION = 'tracking_core.wsgi.application'
 ASGI_APPLICATION = 'tracking_core.asgi.application'
 
-# PostgreSQL 16 Database Configuration & Render Support
+# PostgreSQL Database Configuration (Supports Render, VPS, and SQLite fallback)
 DATABASE_URL = os.environ.get('DATABASE_URL')
 DB_ENGINE = os.environ.get('DB_ENGINE', 'django.db.backends.postgresql')
 DB_NAME = os.environ.get('DB_NAME', 'tracking')
 DB_USER = os.environ.get('DB_USER', 'postgres')
-DB_PASSWORD = os.environ.get('DB_PASSWORD', 'p@ssw0rd')
+DB_PASSWORD = os.environ.get('DB_PASSWORD', '')
 DB_HOST = os.environ.get('DB_HOST', 'localhost')
 DB_PORT = os.environ.get('DB_PORT', '5432')
+DB_SSL_REQUIRE = os.environ.get('DB_SSL_REQUIRE', 'False').lower() in ('true', '1', 'yes')
 
 if DATABASE_URL:
     import dj_database_url
@@ -89,6 +101,7 @@ if DATABASE_URL:
             default=DATABASE_URL,
             conn_max_age=600,
             conn_health_checks=True,
+            ssl_require=DB_SSL_REQUIRE,
         )
     }
 elif DB_ENGINE == 'django.db.backends.sqlite3':
@@ -99,15 +112,20 @@ elif DB_ENGINE == 'django.db.backends.sqlite3':
         }
     }
 else:
+    db_config = {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': DB_NAME,
+        'USER': DB_USER,
+        'PASSWORD': DB_PASSWORD,
+        'HOST': DB_HOST,
+        'PORT': DB_PORT,
+        'CONN_MAX_AGE': 600,
+        'CONN_HEALTH_CHECKS': True,
+    }
+    if DB_SSL_REQUIRE:
+        db_config['OPTIONS'] = {'sslmode': 'require'}
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': DB_NAME,
-            'USER': DB_USER,
-            'PASSWORD': DB_PASSWORD,
-            'HOST': DB_HOST,
-            'PORT': DB_PORT,
-        }
+        'default': db_config
     }
 
 AUTH_USER_MODEL = 'users.User'
@@ -131,29 +149,39 @@ WHITENOISE_MANIFEST_STRICT = False
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Cloudinary Storage Configuration (for uploaded images & files)
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', 'hxy2ukev'),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', '976385154438111'),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', '2-_1yzMteg02I30HP0AJHNZwhQo'),
-}
+# Cloudinary or Local Media Storage
+CLOUDINARY_URL = os.environ.get('CLOUDINARY_URL')
+CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME')
+CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY')
+CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET')
 
-if os.environ.get('CLOUDINARY_URL'):
+if CLOUDINARY_URL or (CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET):
     import cloudinary
-    cloudinary.config(cloudinary_url=os.environ.get('CLOUDINARY_URL'))
-
-STORAGES = {
-    "default": {
-        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
-    },
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
-    },
-}
-
-
-
-
+    if CLOUDINARY_URL:
+        cloudinary.config(cloudinary_url=CLOUDINARY_URL)
+    else:
+        CLOUDINARY_STORAGE = {
+            'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
+            'API_KEY': CLOUDINARY_API_KEY,
+            'API_SECRET': CLOUDINARY_API_SECRET,
+        }
+    STORAGES = {
+        "default": {
+            "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        },
+    }
+else:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        },
+    }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -179,8 +207,16 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
+# CSRF Trusted Origins (Configurable for domain or reverse proxy IP)
+_csrf_trusted = os.environ.get('CSRF_TRUSTED_ORIGINS', '')
+if _csrf_trusted:
+    CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in _csrf_trusted.split(',') if origin.strip()]
+
 # CORS Configuration
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = os.environ.get('CORS_ALLOW_ALL_ORIGINS', 'True').lower() in ('true', '1', 'yes')
+_cors_origins = os.environ.get('CORS_ALLOWED_ORIGINS', '')
+if _cors_origins:
+    CORS_ALLOWED_ORIGINS = [origin.strip() for origin in _cors_origins.split(',') if origin.strip()]
 CORS_ALLOW_CREDENTIALS = True
 
 # Reverse Proxy IP & Header Settings
@@ -190,19 +226,22 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # Redis & Channels Configuration
 REDIS_HOST = os.environ.get('REDIS_HOST', 'localhost')
 REDIS_PORT = os.environ.get('REDIS_PORT', '6379')
+USE_IN_MEMORY_CHANNELS = os.environ.get('USE_IN_MEMORY_CHANNELS', 'False').lower() in ('true', '1', 'yes')
 
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [(REDIS_HOST, int(REDIS_PORT))],
+if USE_IN_MEMORY_CHANNELS or (DEBUG and not os.environ.get('REDIS_HOST')):
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        }
+    }
+else:
+    CHANNEL_LAYERS = {
+        'default': {
+            'BACKEND': 'channels_redis.core.RedisChannelLayer',
+            'CONFIG': {
+                "hosts": [(REDIS_HOST, int(REDIS_PORT))],
+            },
         },
-    },
-}
-
-if os.environ.get('USE_IN_MEMORY_CHANNELS', 'False') == 'True' or DEBUG:
-    CHANNEL_LAYERS['default'] = {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
     }
 
 # Celery Configuration

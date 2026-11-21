@@ -20,21 +20,21 @@ def create_initial_admin():
         User.objects.create_superuser(
             username='admin',
             email='admin@enterprise.com',
-            password='admin123',
+            password='admin@123',
             first_name='Super',
             last_name='Admin',
             role=RoleChoices.SUPER_ADMIN,
             is_staff=True,
             is_superuser=True
         )
-        print("[+] Clean Production Superuser created: admin / admin123")
+        print("[+] Clean Production Superuser created: admin / admin@123")
     else:
         admin_user.is_active = True
         admin_user.is_staff = True
         admin_user.is_superuser = True
-        admin_user.set_password('admin123')
+        admin_user.set_password('admin@123')
         admin_user.save()
-        print("[=] Reset default superuser 'admin' password to 'admin123' & ensured active status.")
+        print("[=] Reset default superuser 'admin' password to 'admin@123' & ensured active status.")
 
 if __name__ == '__main__':
     create_initial_admin()

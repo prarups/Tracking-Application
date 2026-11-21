@@ -11,9 +11,15 @@ export const axiosClient = axios.create({
 
 axiosClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('access_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const url = config.url || '';
+    const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/refresh');
+
+    // Only attach Authorization token to authenticated endpoints, never to login/refresh
+    if (!isAuthEndpoint) {
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
@@ -38,15 +44,20 @@ axiosClient.interceptors.response.use(
           const newAccess = res.data.access;
           localStorage.setItem('access_token', newAccess);
           axiosClient.defaults.headers.common['Authorization'] = `Bearer ${newAccess}`;
+          originalRequest.headers.Authorization = `Bearer ${newAccess}`;
           return axiosClient(originalRequest);
         } catch (refreshError) {
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
+          localStorage.removeItem('user_data');
+          localStorage.removeItem('selected_group');
           window.location.href = '/login';
         }
       } else {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user_data');
+        localStorage.removeItem('selected_group');
         window.location.href = '/login';
       }
     }

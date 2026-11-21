@@ -6,15 +6,18 @@ __pycache__/
 # C extensions
 *.so
 
-# Django / SQLite
+# Django / SQLite / Media / Static
 *.sqlite3
 *.sqlite3-journal
 db.sqlite3
 staticfiles/
 media/
+*.log
 
 # Environments & virtualenvs
 .env
+.env.*
+!.env.example
 .venv
 env/
 venv/
@@ -26,6 +29,7 @@ frontend/node_modules/
 frontend/dist/
 frontend/dist-ssr/
 *.local
+*.tsbuildinfo
 
 # IDE & Editor files
 .vscode/
@@ -36,3 +40,4 @@ frontend/dist-ssr/
 # OS files
 .DS_Store
 Thumbs.db
+

@@ -25,7 +25,7 @@ def seed():
         admin.is_active = True
         admin.is_staff = True
         admin.is_superuser = True
-    admin.set_password('admin123')
+    admin.set_password('admin@123')
     admin.save()
 
     # Ensure no demo users exist
